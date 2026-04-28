@@ -1025,6 +1025,29 @@ body.dark .invest-asset-card { background: #334155; }
     transform: scale(0.96);
 }
         
+    /* Стили для переключения режима графика (две кнопки в группе) */
+.chart-mode-btn {
+    background: transparent;
+    border: none;
+    border-radius: 40px;
+    padding: 6px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+.chart-mode-btn.active {
+    background: #3b82f6;
+    color: white;
+}
+.chart-mode-btn:active {
+    transform: scale(0.96);
+}
+body.dark .chart-mode-btn.active {
+    background: #3b82f6;
+}
+        
     </style>
 
     <!-- Вкладка 1: События -->
@@ -1061,7 +1084,10 @@ body.dark .invest-asset-card { background: #334155; }
             <div class="invest-title">🎮 Инвестиционный симулятор</div>
             <div style="display: flex; gap: 8px;">
                 <button id="btnLearnEconomics" class="btn-guide">📘 Руководство</button>
-                <button id="toggleChartMode" class="btn-guide" style="background:#475569;">📊 График / 🕯️ Свечи</button>
+                <div style="display: flex; background: #475569; border-radius: 40px; padding: 2px;">
+                    <button id="chartModeCandles" class="chart-mode-btn active" data-mode="candles">🕯️ Свечи</button>
+                    <button id="chartModeLine" class="chart-mode-btn" data-mode="line">📈 График</button>
+                </div>
             </div>
         </div>
         <div style="background: #eef2f6; border-radius: 60px; padding: 12px 20px; margin-bottom: 16px; text-align: center;">
@@ -1085,6 +1111,7 @@ body.dark .invest-asset-card { background: #334155; }
         <div class="pseudo-science-note">⚠️ Игра не является инвестиционной рекомендацией. Налог 13%, комиссия 0.05%, дивиденды раз в 2 мин.</div>
     </div>
 </div>
+    
     <!-- Вкладка 4: Обратный отсчёт -->
     <div id="lifeCountdownContent" class="local-content">
         <div class="input-group"><label>Название события</label><input type="text" id="countdownName" placeholder="День свадьбы"></div>
@@ -2770,8 +2797,8 @@ body.dark .invest-asset-card { background: #334155; }
         }
     }
     
-   // ---------- ИГРА ИНВЕСТОР (исправленная версия) ----------
-let investBalance = 5000;          // ▲ стартовый капитал уменьшен
+   // ---------- ИГРА ИНВЕСТОР (финальная версия) ----------
+let investBalance = 5000;
 let userInvestments = {};
 let currentPrices = {};
 let priceHistory = {};
@@ -2781,15 +2808,15 @@ let newsInterval = null;
 let dividendInterval = null;
 let priceRefreshInterval = null;
 let currentFilter = 'default';
-let randomOrder = null;            // для фиксации случайного порядка
-let chartMode = 'candles';         // 'candles' или 'line'
-let focusedInputId = null;         // для восстановления фокуса
+let randomOrder = null;
+let chartMode = 'candles';
+let focusedInputId = null;
 
-// 20 компаний (список остаётся без изменений)
+// Расширенный список компаний (26 компаний, включая ТихвинскийВагонстрой)
 const assets = [
     { id: 'aapl', displayName: 'Яблочный ПК', ticker: 'AAPL', emoji: '🍎', sector: 'Технологии', basePrice: 3800, dividendYield: 0.005 },
     { id: 'msft', displayName: 'МягкийСофт', ticker: 'MSFT', emoji: '💻', sector: 'Технологии', basePrice: 4100, dividendYield: 0.007 },
-    { id: 'googl', displayName: 'ГуглПлюс', ticker: 'GOOGL', emoji: '🔍', sector: 'Інтернет', basePrice: 4900, dividendYield: 0.0 },
+    { id: 'googl', displayName: 'ГуглПлюс', ticker: 'GOOGL', emoji: '🔍', sector: 'Интернет', basePrice: 4900, dividendYield: 0.0 },
     { id: 'amzn', displayName: 'АмазонкаЛогистик', ticker: 'AMZN', emoji: '📦', sector: 'Торговля', basePrice: 5200, dividendYield: 0.0 },
     { id: 'tsla', displayName: 'Тэсла Моторс', ticker: 'TSLA', emoji: '⚡', sector: 'Авто', basePrice: 6200, dividendYield: 0.0 },
     { id: 'gld', displayName: 'ЗолотойЗапас', ticker: 'GLD', emoji: '🥇', sector: 'Металлы', basePrice: 2100, dividendYield: 0.002 },
@@ -2797,20 +2824,26 @@ const assets = [
     { id: 'sber', displayName: 'Сберегательный Банк', ticker: 'SBER', emoji: '🏦', sector: 'Банки', basePrice: 280, dividendYield: 0.08 },
     { id: 'gazp', displayName: 'Газовый Гигант', ticker: 'GAZP', emoji: '🔥', sector: 'Энергия', basePrice: 195, dividendYield: 0.12 },
     { id: 'lukoil', displayName: 'Нефтяной Гигант', ticker: 'LKOH', emoji: '⛽', sector: 'Энергия', basePrice: 680, dividendYield: 0.10 },
-    { id: 'yandex', displayName: 'Яндекс.Поиск', ticker: 'YNDX', emoji: '🔎', sector: 'Інтернет', basePrice: 310, dividendYield: 0.0 },
+    { id: 'yandex', displayName: 'Я.Поиск', ticker: 'YNDX', emoji: '🔎', sector: 'Интернет', basePrice: 310, dividendYield: 0.0 },
     { id: 'rosneft', displayName: 'Роснефтегаз', ticker: 'ROSN', emoji: '🛢️', sector: 'Энергия', basePrice: 420, dividendYield: 0.09 },
     { id: 'magnit', displayName: 'Магнитная Розница', ticker: 'MGNT', emoji: '🛒', sector: 'Торговля', basePrice: 195, dividendYield: 0.06 },
     { id: 'tcsg', displayName: 'Тинькофф Групп', ticker: 'TCSG', emoji: '💳', sector: 'Финансы', basePrice: 470, dividendYield: 0.0 },
     { id: 'moex', displayName: 'МосБиржа', ticker: 'MOEX', emoji: '🏛️', sector: 'Финансы', basePrice: 130, dividendYield: 0.09 },
     { id: 'nvda', displayName: 'НВидиа Граф', ticker: 'NVDA', emoji: '🎮', sector: 'Технологии', basePrice: 8900, dividendYield: 0.001 },
-    { id: 'meta', displayName: 'МетаВселенная', ticker: 'META', emoji: '🌐', sector: 'Інтернет', basePrice: 5200, dividendYield: 0.0 },
+    { id: 'meta', displayName: 'МетаВселенная', ticker: 'META', emoji: '🌐', sector: 'Интернет', basePrice: 5200, dividendYield: 0.0 },
     { id: 'nflx', displayName: 'Нетфликс Кино', ticker: 'NFLX', emoji: '🎬', sector: 'Развлечения', basePrice: 4500, dividendYield: 0.0 },
     { id: 'intc', displayName: 'Интел Чип', ticker: 'INTC', emoji: '💾', sector: 'Технологии', basePrice: 370, dividendYield: 0.025 },
-    { id: 'amd', displayName: 'Эймди Райзен', ticker: 'AMD', emoji: '⚙️', sector: 'Технологии', basePrice: 1100, dividendYield: 0.0 }
+    { id: 'amd', displayName: 'Эймди Райзен', ticker: 'AMD', emoji: '⚙️', sector: 'Технологии', basePrice: 1100, dividendYield: 0.0 },
+    { id: 'tikhvin', displayName: 'ТихвинскийВагонстрой', ticker: 'TVS', emoji: '🚆', sector: 'Машиностроение', basePrice: 150, dividendYield: 0.04 },
+    { id: 'nornick', displayName: 'НорНикель', ticker: 'GMKN', emoji: '⛏️', sector: 'Металлы', basePrice: 12000, dividendYield: 0.11 },
+    { id: 'aeroflot', displayName: 'Аэроборт', ticker: 'AFLT', emoji: '✈️', sector: 'Транспорт', basePrice: 45, dividendYield: 0.0 },
+    { id: 'mts', displayName: 'МТЦ Цифра', ticker: 'MTSS', emoji: '📱', sector: 'Телеком', basePrice: 220, dividendYield: 0.09 },
+    { id: 'rusal', displayName: 'РУС АЛК', ticker: 'RUAL', emoji: '🔩', sector: 'Металлы', basePrice: 38, dividendYield: 0.0 },
+    { id: 'vk', displayName: 'В Контакт', ticker: 'VKCO', emoji: '💬', sector: 'Интернет', basePrice: 480, dividendYield: 0.0 }
 ];
 
 // -------------------- НОВОСТИ --------------------
-const newsEvents = [ /* список без изменений */ 
+const newsEvents = [
     { text: "🏦 Центробанк повысил ключевую ставку", effect: { sector: "all", change: -0.03, duration: 60 }, type: "negative" },
     { text: "🏭 Нефть Brent подорожала на 5%", effect: { sector: "Энергия", change: 0.04, duration: 45 }, type: "positive" },
     { text: "📉 Падение фондового рынка из-за геополитики", effect: { sector: "all", change: -0.02, duration: 30 }, type: "negative" },
@@ -2830,11 +2863,14 @@ const newsEvents = [ /* список без изменений */
     { text: "🥇 Золото подешевело на фоне крепкого доллара", effect: { ids: ["gld"], change: -0.02, duration: 35 }, type: "negative" },
     { text: "🛒 Магнит открывает 100 новых магазинов", effect: { ids: ["magnit"], change: 0.02, duration: 40 }, type: "positive" },
     { text: "💻 Яндекс создаёт конкурента ChatGPT", effect: { ids: ["yandex"], change: 0.045, duration: 50 }, type: "positive" },
-    { text: "⛽ Лукойл запускает сеть АЗС в Европе", effect: { ids: ["lukoil"], change: 0.03, duration: 45 }, type: "positive" }
+    { text: "⛽ Лукойл запускает сеть АЗС в Европе", effect: { ids: ["lukoil"], change: 0.03, duration: 45 }, type: "positive" },
+    { text: "🚆 ТихвинскийВагонстрой получил крупный заказ", effect: { ids: ["tikhvin"], change: 0.07, duration: 60 }, type: "positive" },
+    { text: "⛏️ НорНикель сокращает производство", effect: { ids: ["nornick"], change: -0.05, duration: 50 }, type: "negative" }
 ];
+
 let activeNewsEffects = [];
 
-function showNewsToast(text, type) { /* без изменений */ 
+function showNewsToast(text, type) {
     const toast = document.createElement('div');
     toast.className = `news-toast ${type}`;
     toast.innerHTML = `<span>${type === 'positive' ? '📢' : '⚠️'}</span> ${text}`;
@@ -2875,11 +2911,10 @@ function updatePricesWithEffects() {
         }
         currentPrices[asset.id] = newPrice;
     }
-    renderAssetsList(true);  // перерисовка без сброса фокуса
+    renderAssetsList(true);
     updateTotalProfit();
 }
 
-// -------------------- ИСТОРИЯ ЦЕН И СВЕЧИ --------------------
 function updatePriceHistory(assetId, newPrice) {
     if (!priceHistory[assetId]) priceHistory[assetId] = [];
     priceHistory[assetId].push(newPrice);
@@ -2910,7 +2945,6 @@ function updateCandlestick(assetId, newPrice) {
             close: data.currentClose,
             time: data.lastTime
         });
-        // Оставляем только последние 20 свечей
         if (data.candles.length > 20) data.candles.shift();
         data.currentOpen = newPrice;
         data.currentHigh = newPrice;
@@ -2924,7 +2958,6 @@ function updateCandlestick(assetId, newPrice) {
     }
 }
 
-// -------------------- ОТРИСОВКА ГРАФИКОВ (линия или свечи) --------------------
 function drawChart(canvasId, assetId) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
@@ -2963,7 +2996,6 @@ function drawCandlestickChart(canvas, candles) {
         ctx.fillStyle = '#94a3b8';
         ctx.fillRect(x + candleWidth * 0.45, highY, 2, lowY - highY);
     }
-    // SMA 5
     if (candles.length >= 5) {
         ctx.beginPath();
         ctx.strokeStyle = '#f59e0b';
@@ -3006,7 +3038,6 @@ function drawLineChart(canvas, candles) {
         else ctx.lineTo(x, y);
     }
     ctx.stroke();
-    // заливка под линией
     ctx.lineTo(offsetX + (prices.length-1)*step, h - offsetY);
     ctx.lineTo(offsetX, h - offsetY);
     ctx.closePath();
@@ -3014,7 +3045,6 @@ function drawLineChart(canvas, candles) {
     ctx.fill();
 }
 
-// -------------------- ФИЛЬТРАЦИЯ (случайный порядок фиксируется) --------------------
 function getSortedAssets() {
     if (currentFilter === 'random') {
         if (!randomOrder) {
@@ -3026,7 +3056,6 @@ function getSortedAssets() {
         }
         return randomOrder;
     }
-    // для других фильтров порядок вычисляется заново каждый раз
     let sorted = [...assets];
     if (currentFilter === 'profit') {
         sorted.sort((a,b) => {
@@ -3040,13 +3069,11 @@ function getSortedAssets() {
     return sorted;
 }
 
-// -------------------- ОТРИСОВКА СПИСКА (с сохранением фокуса) --------------------
 let assetElements = {};
 
 function renderAssetsList(keepFocus = false) {
     const container = document.getElementById('investAssetsList');
     if (!container) return;
-    // Сохраняем значения полей и запоминаем, какой input был в фокусе
     if (keepFocus && document.activeElement && document.activeElement.id && document.activeElement.id.startsWith('amount_')) {
         focusedInputId = document.activeElement.id;
     }
@@ -3063,6 +3090,9 @@ function renderAssetsList(keepFocus = false) {
         const profit = shares > 0 ? (shares * (currentPrices[asset.id] || 0) - shares * buyPrice).toFixed(2) : 0;
         const profitPercent = shares > 0 && buyPrice > 0 ? ((currentPrices[asset.id] / buyPrice - 1) * 100).toFixed(2) : 0;
         const profitClass = profit > 0 ? 'profit-positive' : (profit < 0 ? 'profit-negative' : '');
+        const changeFromBase = ((currentPrices[asset.id] - asset.basePrice) / asset.basePrice * 100).toFixed(1);
+        const changeClass = parseFloat(changeFromBase) >= 0 ? 'profit-positive' : 'profit-negative';
+        
         let trendArrow = '';
         let trendClass = '';
         if (priceHistory[asset.id] && priceHistory[asset.id].length >= 2) {
@@ -3079,7 +3109,11 @@ function renderAssetsList(keepFocus = false) {
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div style="font-size: 28px;">${asset.emoji}</div>
-                        <div><div class="invest-asset-name">${asset.displayName}</div><div style="font-size: 12px; opacity: 0.7;">${asset.sector}</div></div>
+                        <div>
+                            <div class="invest-asset-name">${asset.displayName}</div>
+                            <div style="font-size: 11px; opacity: 0.7;">${asset.sector}</div>
+                            <div style="font-size: 11px; ${changeClass}">📊 ${changeFromBase}% с начала</div>
+                        </div>
                     </div>
                     <div style="text-align: right;">
                         <div class="invest-asset-price">${price} ₽</div>
@@ -3105,7 +3139,6 @@ function renderAssetsList(keepFocus = false) {
         `;
     }).join('');
     
-    // Восстанавливаем значения полей и фокус
     for (let asset of assets) {
         const input = document.getElementById(`amount_${asset.id}`);
         if (input && assetElements[asset.id] !== undefined) input.value = assetElements[asset.id];
@@ -3116,7 +3149,6 @@ function renderAssetsList(keepFocus = false) {
         focusedInputId = null;
     }
     
-    // Обработчики кнопок
     document.querySelectorAll('.buy-btn').forEach(btn => {
         btn.removeEventListener('click', buyHandler);
         btn.addEventListener('click', buyHandler);
@@ -3141,7 +3173,6 @@ function renderAssetsList(keepFocus = false) {
     }
 }
 
-// -------------------- ПОКУПКА / ПРОДАЖА (с налогом) --------------------
 function buyAsset(assetId, rubAmount) {
     const price = currentPrices[assetId];
     if (!price) { alert('Цена не загружена'); return; }
@@ -3183,7 +3214,6 @@ function sellAsset(assetId) {
     renderAssetsList(true);
 }
 
-// -------------------- ДИВИДЕНДЫ И РЕЙТИНГ --------------------
 function payDividends() {
     let totalDividends = 0;
     for (let [id, inv] of Object.entries(userInvestments)) {
@@ -3220,22 +3250,47 @@ function updateLeaderboard() {
     console.log('📊 Ежедневный рейтинг:', leaderboard.entries);
 }
 
-// -------------------- ИНИЦИАЛИЗАЦИЯ (20 свечей сразу, начальный капитал 5000) --------------------
 function initHistoryAndPrices() {
-    for (let i = 0; i < 20; i++) {
-        updatePricesWithEffects(); // генерирует 20 точек истории
-    }
-    // Принудительно обновим свечи, чтобы они были
+    // Сброс до базовых цен
     for (let asset of assets) {
-        if (candlestickData[asset.id] && candlestickData[asset.id].candles.length < 20) {
-            // если вдруг меньше, добавим недостающие копированием последней цены
-            while (candlestickData[asset.id].candles.length < 20) {
-                const last = candlestickData[asset.id].candles[candlestickData[asset.id].candles.length-1];
-                if (last) candlestickData[asset.id].candles.push({...last, time: last.time+5000});
-                else break;
-            }
+        currentPrices[asset.id] = asset.basePrice;
+        priceHistory[asset.id] = [asset.basePrice];
+    }
+    // Генерируем 20 шагов случайного блуждания
+    for (let step = 0; step < 20; step++) {
+        for (let asset of assets) {
+            let oldPrice = currentPrices[asset.id];
+            let r = seededRandom(step * 100 + asset.id.charCodeAt(0));
+            let change = (r - 0.5) * 0.025;
+            let newPrice = oldPrice * (1 + change);
+            newPrice = Math.max(1, newPrice);
+            newPrice = Math.round(newPrice * 100) / 100;
+            currentPrices[asset.id] = newPrice;
+            priceHistory[asset.id].push(newPrice);
         }
     }
+    // Строим свечи из сгенерированной истории
+    for (let asset of assets) {
+        const prices = priceHistory[asset.id];
+        if (!prices || prices.length === 0) continue;
+        const candles = [];
+        for (let i = 1; i < prices.length; i++) {
+            const open = prices[i-1];
+            const close = prices[i];
+            const high = Math.max(open, close) * (1 + Math.random() * 0.005);
+            const low = Math.min(open, close) * (1 - Math.random() * 0.005);
+            candles.push({ open, high, low, close, time: Date.now() - (prices.length - i) * 5000 });
+        }
+        candlestickData[asset.id] = {
+            candles: candles,
+            currentOpen: prices[prices.length-1],
+            currentHigh: prices[prices.length-1],
+            currentLow: prices[prices.length-1],
+            currentClose: prices[prices.length-1],
+            lastTime: Date.now()
+        };
+    }
+    // Текущие цены оставляем последние
 }
 
 function updateBalanceDisplay() {
@@ -3312,23 +3367,29 @@ function initFilters() {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentFilter = btn.dataset.filter;
-            if (currentFilter === 'random') randomOrder = null;  // сбросим, при следующем getSortedAssets() сгенерируется новый порядок
-            else randomOrder = null;
+            randomOrder = null;
             renderAssetsList(true);
         });
     });
 }
 
-function toggleChartMode() {
-    chartMode = chartMode === 'candles' ? 'line' : 'candles';
-    // перерисовываем все графики
+function setChartMode(mode) {
+    chartMode = mode;
+    const btnCandles = document.getElementById('chartModeCandles');
+    const btnLine = document.getElementById('chartModeLine');
+    if (btnCandles && btnLine) {
+        if (mode === 'candles') {
+            btnCandles.classList.add('active');
+            btnLine.classList.remove('active');
+        } else {
+            btnLine.classList.add('active');
+            btnCandles.classList.remove('active');
+        }
+    }
     for (let asset of assets) {
         const canvasId = `chart_${asset.id}`;
         drawChart(canvasId, asset.id);
     }
-    // обновим текст кнопки (можно и не менять, но для удобства)
-    const btn = document.getElementById('toggleChartMode');
-    if (btn) btn.innerHTML = chartMode === 'candles' ? '📊 График / 🕯️ Свечи' : '🕯️ Свечи / 📊 График';
 }
 
 function showEconomicsModal() {
@@ -3359,15 +3420,15 @@ function initInvestorGame() {
     scheduleDividends();
     initFilters();
     renderAssetsList(true);
-    // Кнопка переключения режима графиков
-    const toggleBtn = document.getElementById('toggleChartMode');
-    if (toggleBtn) toggleBtn.addEventListener('click', toggleChartMode);
-    // Кнопка руководства
+    const btnCandles = document.getElementById('chartModeCandles');
+    const btnLine = document.getElementById('chartModeLine');
+    if (btnCandles) btnCandles.addEventListener('click', () => setChartMode('candles'));
+    if (btnLine) btnLine.addEventListener('click', () => setChartMode('line'));
     const learnBtn = document.getElementById('btnLearnEconomics');
     if (learnBtn) learnBtn.addEventListener('click', showEconomicsModal);
 }
 
-// Стартуем игру, когда DOM загружен
+// Автоматический запуск при загрузке DOM
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('investAssetsList')) initInvestorGame();
 });
