@@ -2759,13 +2759,12 @@
         }
     }
     
-   // ---------- ИГРА ИНВЕСТОР (ГЛОБАЛЬНЫЙ РЫНОК) ----------
+   // ---------- ИГРА ИНВЕСТОР (Детерминированные глобальные цены) ----------
 let investBalance = 100000;
 let userInvestments = {};
 let currentPrices = {};
 let priceRefreshInterval = null;
 let priceHistory = {};
-let globalPricesRef = null;     // ссылка на Firebase для цен
 
 // Расширенный список компаний (российские + мировые, названия изменены)
 const assets = [
@@ -2785,84 +2784,41 @@ const assets = [
     { id: 'magnit', displayName: 'Магнитная Розница', ticker: 'MGNT', emoji: '🛒', sector: 'Торговля', basePrice: 195 }
 ];
 
-// Инициализация Firebase для глобальных цен
-function initGlobalPrices() {
-    globalPricesRef = database.ref('globalPrices');
-    // При первом запуске создаём начальные цены, если их нет
-    globalPricesRef.once('value', snapshot => {
-        if (!snapshot.exists()) {
-            const initialPrices = {};
-            assets.forEach(asset => {
-                initialPrices[asset.id] = asset.basePrice;
-            });
-            globalPricesRef.set(initialPrices);
-        }
-    });
-    // Слушаем изменения цен в реальном времени
-    globalPricesRef.on('value', snapshot => {
-        if (snapshot.exists()) {
-            const newPrices = snapshot.val();
-            // Сохраняем историю для каждого актива перед обновлением
-            for (let id in newPrices) {
-                if (currentPrices[id] !== newPrices[id]) {
-                    updatePriceHistory(id, newPrices[id]);
-                }
-            }
-            currentPrices = newPrices;
-            renderAssetsList();
-            updateTotalProfit();
-        }
-    });
+// Генератор псевдослучайных чисел на основе времени (детерминированный для всех)
+function seededRandom(seed) {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
 }
 
-// Генерация нового изменения цен (детерминированное, но с трендами и шумом)
-// Вызывается один раз в 5 секунд любым пользователем, но проверяем время последнего обновления
-async function updateGlobalPrices() {
-    if (!globalPricesRef) return;
-    const lastUpdateRef = database.ref('globalPricesMeta/lastUpdate');
+// Обновление цен – используем текущее время с округлением до 5 секунд,
+// чтобы у всех пользователей были одинаковые значения в один момент
+function updatePrices() {
     const now = Date.now();
-    // Блокировка на 5 секунд, чтобы только один клиент обновил
-    const snapshot = await lastUpdateRef.once('value');
-    const last = snapshot.val() || 0;
-    if (now - last < 5000) return;  // недавно обновляли
-
-    // Пытаемся атомарно установить новое время
-    const result = await lastUpdateRef.transaction(current => {
-        if (current && now - current < 5000) return;
-        return now;
-    });
-    if (!result.committed) return; // другой клиент опередил
-
-    // Генерируем новые цены на основе старых
-    const oldPrices = { ...currentPrices };
-    const newPrices = {};
+    // Округляем до 5 секунд, чтобы все клиенты синхронно получали одни и те же цены
+    const timeSlot = Math.floor(now / 5000) * 5000;
+    const seed = timeSlot / 1000;
+    
     for (let asset of assets) {
-        let old = oldPrices[asset.id] || asset.basePrice;
-        // Случайное блуждание + тренд (иногда вверх, иногда вниз)
-        let volatility = 0.015; // 1.5% волатильность
-        let change = (Math.random() - 0.5) * volatility;
-        // Добавляем лёгкий тренд (циклический или псевдослучайный)
-        let trend = Math.sin(Date.now() / 10000) * 0.005;
+        let oldPrice = currentPrices[asset.id] || asset.basePrice;
+        // Генерируем изменение на основе синуса от времени + случайный шум, но детерминированный
+        let volatility = 0.015;
+        let r = seededRandom(seed + asset.id.charCodeAt(0) * 100);
+        let change = (r - 0.5) * volatility;
+        // Добавляем лёгкий тренд (синус от времени)
+        let trend = Math.sin(seed * 0.3) * 0.005;
         change += trend;
-        let newPrice = old * (1 + change);
-        newPrice = Math.max(1, newPrice); // не ниже 1
-        newPrices[asset.id] = Math.round(newPrice * 100) / 100;
+        let newPrice = oldPrice * (1 + change);
+        newPrice = Math.max(1, newPrice);
+        newPrice = Math.round(newPrice * 100) / 100;
+        if (currentPrices[asset.id] !== newPrice) {
+            updatePriceHistory(asset.id, newPrice);
+        }
+        currentPrices[asset.id] = newPrice;
     }
-    await globalPricesRef.set(newPrices);
-}
-
-// Функция обновления цен (вызывается вручную или по таймеру)
-async function refreshPricesAndUpdate() {
-    const btn = document.getElementById('refreshInvestPrices');
-    if (btn) btn.disabled = true;
-    await updateGlobalPrices();
-    if (btn) btn.disabled = false;
-    updateTotalProfit();
     renderAssetsList();
-    saveGameState();
+    updateTotalProfit();
 }
 
-// Остальные функции (updatePriceHistory, drawSparkline, renderAssetsList и т.д.) требуют небольших изменений для отображения стрелок
 function updatePriceHistory(assetId, newPrice) {
     if (!priceHistory[assetId]) priceHistory[assetId] = [];
     priceHistory[assetId].push(newPrice);
@@ -2903,7 +2859,7 @@ function renderAssetsList() {
         const profitPercent = shares > 0 && buyPrice > 0 ? ((currentPrices[asset.id] / buyPrice - 1) * 100).toFixed(2) : 0;
         const profitClass = profit > 0 ? 'profit-positive' : (profit < 0 ? 'profit-negative' : '');
         
-        // Определяем стрелку: смотрим историю цен (последние 5 изменений)
+        // Определяем стрелку: смотрим историю цен (последние 2 значения)
         let trendArrow = '';
         let trendClass = '';
         if (priceHistory[asset.id] && priceHistory[asset.id].length >= 2) {
@@ -3037,7 +2993,6 @@ function loadGameState() {
             if (investBalance < 0) investBalance = 100000;
         } catch(e) { }
     }
-    // Цены загружаются через Firebase, поэтому не нужно генерировать локально
 }
 
 function initBlur() {
@@ -3050,16 +3005,23 @@ function initBlur() {
     }
 }
 
+async function refreshPricesAndUpdate() {
+    const btn = document.getElementById('refreshInvestPrices');
+    if (btn) btn.disabled = true;
+    updatePrices();
+    if (btn) btn.disabled = false;
+}
+
 function initInvestorGame() {
     loadGameState();
     initBlur();
-    initGlobalPrices();       // подписываемся на глобальные цены
+    // Генерируем начальные цены и историю
+    for (let i = 0; i < 20; i++) {
+        updatePrices(); // заполнит историю 20 точками
+    }
     updateBalanceDisplay();
-    // Устанавливаем таймер обновления цен (каждые 5 секунд)
     if (priceRefreshInterval) clearInterval(priceRefreshInterval);
     priceRefreshInterval = setInterval(() => { refreshPricesAndUpdate(); }, 5000);
-    // Первый раз принудительно обновим, чтобы цены появились сразу
-    refreshPricesAndUpdate();
 }
 
 function showEconomicsModal() {
@@ -3078,7 +3040,7 @@ function showEconomicsModal() {
     modal.querySelector('#closeLearnModal').addEventListener('click', () => modal.remove());
 }
 
-// Привязываем кнопки обучения и обновления (они уже есть в DOMContentLoaded, но дублируем для надёжности)
+// Привязка кнопок (будет вызвано в DOMContentLoaded)
 document.addEventListener('DOMContentLoaded', () => {
     const learnBtn = document.getElementById('btnLearnEconomics');
     if (learnBtn) learnBtn.addEventListener('click', showEconomicsModal);
