@@ -1036,9 +1036,9 @@
     <!-- Вкладка 2: Мои данные -->
     <div id="lifeStatsContent" class="local-content">
         <div class="input-group"><label>🎂 Дата рождения</label><input type="date" id="lifeStatsBirthInput"></div>
-        <div class="life-box"><h4>⏳ Сколько я живу</h4><div class="time-box" id="lifeTimeBox">...</div><div id="lifeNextBirthday"></div><div id="lifeStatsZodiac"></div></div>
+        <div class="life-box"><h4>⏳ Сколько я живу</h4><div class="time-box" id="lifeTimeBox"></div><div id="lifeNextBirthday"></div><div id="lifeStatsZodiac"></div></div>
         <div class="life-box"><h4>🪐 Возраст на планетах</h4><div class="worth-grid" id="planetAges"></div></div>
-        <div class="life-box"><h4>❤️ Сердце и дыхание</h4><div class="worth-grid"><div class="worth-item"><div class="worth-number" id="heartbeats">—</div></div><div class="worth-item"><div class="worth-number" id="breaths">—</div></div></div></div>
+        <div class="life-box"><h4>❤️ Сердце и дыхание</h4><div class="worth-grid"><div class="worth-item"><div class="worth-number" id="heartbeats">—</div><div class="worth-label">ударов сердца</div></div><div class="worth-item"><div class="worth-number" id="breaths">—</div><div class="worth-label">вдохов</div></div></div></div>
         <div class="life-box"><h4>🔢 Нумерология</h4><div id="numerology"></div></div>
         <div class="note">* Нумерология – развлекательная концепция.</div>
     </div>
@@ -1220,13 +1220,13 @@
                 updateCalendar();
             }
             if (tabId === 'life') {
-    lifeSection.classList.add('active-section');
-    startLifeTimer();
-    updateLifeFacts();
-    renderCountdownList();
-    const firstTab = document.querySelector('#lifeLocalTabs .local-tab[data-local="lifeFacts"]');
-    if (firstTab) firstTab.click();
-}
+                lifeSection.classList.add('active-section');
+                startLifeTimer();
+                updateLifeFacts();
+                renderCountdownList();
+                const firstTab = document.querySelector('#lifeLocalTabs .local-tab[data-local="lifeFacts"]');
+                if (firstTab) firstTab.click();
+            }
         }
         tabs.forEach(tab => {
             tab.addEventListener('click', (e) => {
@@ -1235,7 +1235,6 @@
                 if (target) switchSection(target);
             });
         });
-        // Всегда открываем вкладку "События" при показе раздела Жизнь
         const activeTab = document.querySelector('.tab-icon.active');
         if (activeTab && activeTab.dataset.tab) switchSection(activeTab.dataset.tab);
         else switchSection('time');
@@ -1531,6 +1530,9 @@
             percentBtn.style.background = '#64748b';
             fixedBtn.style.background = '#3b82f6';
         }
+        saveGoalData();
+        calculateGoal();
+        updateCalendar();
     }
     
     function saveGoalData() {
@@ -1682,7 +1684,7 @@
         updateCalendar();
     }
     
-    // ---------- ГЛОБАЛЬНЫЙ ЛИДЕРБОРД (РАБОЧАЯ ВЕРСИЯ ИЗ 8.7) ----------
+    // ---------- ГЛОБАЛЬНЫЙ ЛИДЕРБОРД ----------
     async function updateGlobalLeaderboard(anonymousScore = null) {  
         try {
             const snapshot = await scoresRef.orderByValue().limitToLast(10).once('value'); 
@@ -1703,7 +1705,6 @@
             const leaderboardElem = document.getElementById('snakeLeaderboard'); 
             if (leaderboardElem) leaderboardElem.innerHTML = html; 
 
-            // ---------- НОВОЕ: расчёт процентиля ----------
             const percentileElem = document.getElementById('percentileMessage');
             if (percentileElem) {
                 if (snakeCurrentPlayer || anonymousScore !== null) {
@@ -1711,12 +1712,10 @@
                     const allScores = [];
                     allSnapshot.forEach(child => { allScores.push({ name: child.key, score: child.val() }); });
                     allScores.sort((a,b) => b.score - a.score);
-
                     const totalPlayers = allScores.length;
                     let currentScore = snakeCurrentPlayer 
                         ? (allScores.find(p => p.name === snakeCurrentPlayer) || { score: 0 }).score 
                         : anonymousScore;
-
                     if (totalPlayers === 0) {
                         percentileElem.style.display = 'block';
                         percentileElem.innerHTML = 'Вы первый игрок! 🎉';
@@ -1730,42 +1729,29 @@
                         percentileElem.innerHTML = `Ваш результат выше, чем у ${percentile}% игроков!`;
                     }
                 } else {
-                    percentileElem.style.display = 'none'; // совсем нет данных (например, при старте)
+                    percentileElem.style.display = 'none';
                 }
             }
-            // -----------------------------------------------
         } catch(e) { console.warn("Ошибка загрузки лидерборда:", e); }
     }
     
-    // ПРОСТАЯ ФУНКЦИЯ СОХРАНЕНИЯ (как в 8.7)
     async function saveGlobalScore(playerName, score, apples = 0, durationSec = 0) {
         if (!playerName) return;
-
-        // Проверка на чит по времени (для игр с >100 яблок)
         if (apples > 100 && durationSec > 0) {
-            // Точный расчёт минимального времени для apples яблок
             let minTime = 0;
-            let interval = 150; // начальный интервал в мс
+            let interval = 150;
             for (let i = 1; i <= apples; i++) {
                 minTime += interval / 1000;
-                if (i % 5 === 0 && interval > 60) {
-                    interval -= 5;
-                }
+                if (i % 5 === 0 && interval > 60) interval -= 5;
             }
-            // Запас 20% на реакцию
             if (durationSec < minTime * 0.8) {
                 console.warn(`Читер! ${playerName} собрал ${apples} яблок за ${durationSec.toFixed(1)}с (мин. ${minTime.toFixed(1)}с).`);
                 try {
-                    await database.ref('bannedPlayers/' + playerName).set({
-                        reason: `apples:${apples} time:${durationSec.toFixed(1)}s min:${minTime.toFixed(1)}s`,
-                        date: Date.now()
-                    });
+                    await database.ref('bannedPlayers/' + playerName).set({ reason: `apples:${apples} time:${durationSec.toFixed(1)}s min:${minTime.toFixed(1)}s`, date: Date.now() });
                 } catch(e) { console.error(e); }
-                return; // рекорд не сохраняем
+                return;
             }
         }
-
-        // Старая проверка по достижениям (для счёта >100 без достижения)
         if (score > 100) {
             const achievements = loadAchievements(playerName);
             if (!achievements.includes('100')) {
@@ -1773,7 +1759,6 @@
                 return;
             }
         }
-
         score = Math.min(score, MAX_RECORD);
         try {
             const currentBest = await scoresRef.child(playerName).once('value');
@@ -1807,15 +1792,10 @@
         if (earned.includes(achievementId)) return false;
         earned.push(achievementId);
         localStorage.setItem(`achievements_${playerName}`, JSON.stringify(earned));
-
-        // Синхронизация с облаком
         const userRef = database.ref('users/' + playerName);
         userRef.once('value').then(snap => {
-            if (snap.exists()) {
-                userRef.child('achievements').set(earned);
-            }
+            if (snap.exists()) userRef.child('achievements').set(earned);
         }).catch(() => {});
-
         return true;
     }
     
@@ -1834,12 +1814,11 @@
         setTimeout(() => toast.remove(), 4000);
     }
     
-    // ---------- ЗМЕЙКА (С ИСПРАВЛЕННОЙ ТАБЛИЦЕЙ ЛИДЕРОВ) ----------
+    // ---------- ЗМЕЙКА ----------
     let snakeGameActive = false, snakeInterval = null, snakeCurrentPlayer = null;
     
     async function checkNameUnique(name) {
         if (!name) return true;
-        // Проверяем и scores, и users
         const [scoreSnap, userSnap] = await Promise.all([
             scoresRef.child(name).once('value'),
             database.ref('users/' + name).once('value')
@@ -1865,8 +1844,6 @@
                 <div style="text-align:right"><span class="close-cross">✕</span></div>
                 <h3>👤 Личный кабинет</h3>
                 <p>Имя: <strong>${snakeCurrentPlayer}</strong></p>
-                
-                <!-- НОВЫЙ БЛОК СТАТИСТИКИ -->
                 <div style="background:#1e293b; border:1px solid #5a6c7d; border-radius:28px; padding:16px; margin-bottom:16px;">
                     <div style="display:flex; align-items:center; margin-bottom:12px;">
                         <span style="background:#334155; border-radius:50%; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; margin-right:12px; font-size:18px;">🏆</span>
@@ -1890,10 +1867,8 @@
                         </div>
                     </div>
                 </div>
-                
                 <h4>🏆 Достижения</h4>
                 <div id="achievementsList"></div>
-                
                 <label style="margin-top:16px;">Сменить имя:</label>
                 <input type="text" id="newProfileName" placeholder="Новое имя" maxlength="16">
                 <button id="saveProfileName" class="modal-btn" style="background:#3b82f6;">Сохранить</button>
@@ -1910,13 +1885,11 @@
         const achievementsContainer = modal.querySelector('#achievementsList');
         const logoutBtn = modal.querySelector('#logoutBtn');
         
-        // Заполняем статические данные
         const snakeScores = JSON.parse(localStorage.getItem('snakeScores') || '{}');
         const bestScore = snakeScores[snakeCurrentPlayer] || 0;
         modal.querySelector('#profileBestScore').innerText = bestScore;
         modal.querySelector('#profileAchievementsCount').innerText = earnedAchievements.length;
         
-        // Асинхронно вычисляем процентиль
         database.ref('scores').once('value').then(snapshot => {
             const allScores = [];
             snapshot.forEach(child => allScores.push({ name: child.key, score: child.val() }));
@@ -2014,7 +1987,6 @@
         `;
         document.body.appendChild(modal);
 
-        // Запрещённые простые пароли (можно расширить)
         const forbiddenPasswords = [
             '1234','12345','123456','1111','2222','3333','4444','5555','6666','7777','8888','9999','0000',
             'password','pass','qwerty','abc123','letmein','123456789','12345678','123123','admin','iloveyou',
@@ -2023,8 +1995,7 @@
 
         function isPasswordStrong(password, isRegistration) {
             if (!password || password.length < 4) return false;
-            if (/\s/.test(password)) return false; // пробелы запрещены всегда
-            // При регистрации – дополнительные проверки
+            if (/\s/.test(password)) return false;
             if (isRegistration) {
                 const lowerPass = password.toLowerCase();
                 if (forbiddenPasswords.includes(lowerPass)) return false;
@@ -2040,7 +2011,7 @@
         const passwordInput = modal.querySelector('#snakePasswordInput');
         const passwordHint = modal.querySelector('#passwordHint');
 
-        let currentMode = null; // 'registration' или 'login'
+        let currentMode = null;
 
         function cleanup() { modal.remove(); }
 
@@ -2057,9 +2028,7 @@
                 currentMode = null;
                 return;
             }
-
             const isUnique = await checkNameUnique(val);
-
             if (isUnique) {
                 currentMode = 'registration';
                 passwordSection.style.display = 'block';
@@ -2079,7 +2048,6 @@
             const pass = passwordInput.value.trim();
             const isRegistration = (currentMode === 'registration');
             const strong = isPasswordStrong(pass, isRegistration);
-
             if (name && pass.length >= 4 && strong) {
                 startBtn.disabled = false;
                 startBtn.style.background = '#10b981';
@@ -2090,13 +2058,9 @@
                 startBtn.style.background = '#64748b';
                 startBtn.style.opacity = '0.7';
                 startBtn.innerText = 'Играть';
-                // Дополнительная подсказка, если пароль слабый
                 if (name && pass.length >= 4 && !strong) {
-                    if (/\s/.test(pass)) {
-                        passwordHint.innerText = 'Пароль не должен содержать пробелов';
-                    } else if (isRegistration) {
-                        passwordHint.innerText = 'Пароль слишком простой, придумайте сложнее';
-                    }
+                    if (/\s/.test(pass)) passwordHint.innerText = 'Пароль не должен содержать пробелов';
+                    else if (isRegistration) passwordHint.innerText = 'Пароль слишком простой, придумайте сложнее';
                 }
             }
         }
@@ -2105,32 +2069,21 @@
             const name = nameInput.value.trim();
             const pass = passwordInput.value.trim();
             if (!name || pass.length < 4) return;
-
-            // Финальная проверка пароля перед отправкой
             if (!isPasswordStrong(pass, currentMode === 'registration')) {
-                if (currentMode === 'registration') {
-                    alert('Пароль слишком простой или содержит пробелы. Придумайте надёжнее.');
-                } else {
-                    alert('Пароль не должен содержать пробелов и должен быть не менее 4 символов.');
-                }
+                if (currentMode === 'registration') alert('Пароль слишком простой или содержит пробелы. Придумайте надёжнее.');
+                else alert('Пароль не должен содержать пробелов и должен быть не менее 4 символов.');
                 return;
             }
-
             const bannedSnap = await database.ref('bannedPlayers/' + name).once('value');
             if (bannedSnap.exists()) {
                 alert('Ваш аккаунт заблокирован за нарушение правил.');
                 return;
             }
             const isUnique = await checkNameUnique(name);
-
             if (isUnique) {
-                // Регистрация
                 const passwordHash = await simpleHash(name + ':' + pass);
                 try {
-                    await database.ref('users/' + name).set({
-                        passwordHash: passwordHash,
-                        achievements: []
-                    });
+                    await database.ref('users/' + name).set({ passwordHash: passwordHash, achievements: [] });
                     cleanup();
                     callback(name, false);
                 } catch (e) {
@@ -2138,7 +2091,6 @@
                     console.warn(e);
                 }
             } else {
-                // Вход
                 const snap = await database.ref('users/' + name).once('value');
                 const userData = snap.val();
                 if (!userData || !userData.passwordHash) {
@@ -2147,7 +2099,6 @@
                 }
                 const passwordHash = await simpleHash(name + ':' + pass);
                 if (passwordHash === userData.passwordHash) {
-                    // Успешный вход – синхронизируем достижения
                     if (userData.achievements && Array.isArray(userData.achievements)) {
                         const localAchievements = loadAchievements(name);
                         const merged = [...new Set([...localAchievements, ...userData.achievements])];
@@ -2162,7 +2113,6 @@
         };
     }
 
-    // Простая хеш-функция (SHA-256)
     async function simpleHash(str) {
         const msgUint8 = new TextEncoder().encode(str);
         const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
@@ -2354,7 +2304,6 @@
             if (head.x < 0 || head.x >= size || head.y < 0 || head.y >= size || snake.some(seg => seg.x === head.x && seg.y === head.y)) {
                 pauseGame();
                 saveLocalScore();
-                // Сохраняем глобальный рекорд и обновляем таблицу
                 if (snakeCurrentPlayer) {
                     const duration = gameStartTime ? (Date.now() - gameStartTime) / 1000 : 0;
                     saveGlobalScore(snakeCurrentPlayer, score, appleEatenCount, duration);
@@ -2403,7 +2352,7 @@
         }
         
         document.getElementById('profileBtn').addEventListener('click', () => {
-            if (gameRunning) pauseGame();   // <-- добавить эту строку
+            if (gameRunning) pauseGame();
             if (snakeCurrentPlayer) showProfileModal();
             else {
                 showNameInputModal((name, isClose) => {
@@ -2464,57 +2413,27 @@
         });
         
         function handleKeydown(e) {
-            // Не управляем змейкой, если фокус в поле ввода
             if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
             if (!snakeGameActive) return;
-        
             const key = e.key;
             const code = e.code;
-        
-            // Пробел работает всегда (пауза/старт), даже если игра не идёт
             if (key === ' ' || key === 'Space' || code === 'Space') {
                 togglePause();
                 e.preventDefault();
                 return;
             }
-        
-            // Все клавиши направлений работают только при движении
             if (!gameRunning) return;
-        
-            // Вверх: стрелка вверх, W (англ/рус), физическая кнопка W
-            if (code === 'ArrowUp' || code === 'KeyW' || key === 'ArrowUp' || 
-                key === 'w' || key === 'W' || key === 'ц' || key === 'Ц') {
-                if (!directionChangedThisFrame && direction !== 'DOWN') {
-                    direction = 'UP';
-                    directionChangedThisFrame = true;
-                }
+            if (code === 'ArrowUp' || code === 'KeyW' || key === 'ArrowUp' || key === 'w' || key === 'W' || key === 'ц' || key === 'Ц') {
+                if (!directionChangedThisFrame && direction !== 'DOWN') { direction = 'UP'; directionChangedThisFrame = true; }
                 e.preventDefault();
-            }
-            // Вниз: стрелка вниз, S (англ/рус), физическая кнопка S
-            else if (code === 'ArrowDown' || code === 'KeyS' || key === 'ArrowDown' || 
-                     key === 's' || key === 'S' || key === 'ы' || key === 'Ы') {
-                if (!directionChangedThisFrame && direction !== 'UP') {
-                    direction = 'DOWN';
-                    directionChangedThisFrame = true;
-                }
+            } else if (code === 'ArrowDown' || code === 'KeyS' || key === 'ArrowDown' || key === 's' || key === 'S' || key === 'ы' || key === 'Ы') {
+                if (!directionChangedThisFrame && direction !== 'UP') { direction = 'DOWN'; directionChangedThisFrame = true; }
                 e.preventDefault();
-            }
-            // Влево: стрелка влево, A (англ/рус), физическая кнопка A
-            else if (code === 'ArrowLeft' || code === 'KeyA' || key === 'ArrowLeft' || 
-                     key === 'a' || key === 'A' || key === 'ф' || key === 'Ф') {
-                if (!directionChangedThisFrame && direction !== 'RIGHT') {
-                    direction = 'LEFT';
-                    directionChangedThisFrame = true;
-                }
+            } else if (code === 'ArrowLeft' || code === 'KeyA' || key === 'ArrowLeft' || key === 'a' || key === 'A' || key === 'ф' || key === 'Ф') {
+                if (!directionChangedThisFrame && direction !== 'RIGHT') { direction = 'LEFT'; directionChangedThisFrame = true; }
                 e.preventDefault();
-            }
-            // Вправо: стрелка вправо, D (англ/рус), физическая кнопка D
-            else if (code === 'ArrowRight' || code === 'KeyD' || key === 'ArrowRight' || 
-                     key === 'd' || key === 'D' || key === 'в' || key === 'В') {
-                if (!directionChangedThisFrame && direction !== 'LEFT') {
-                    direction = 'RIGHT';
-                    directionChangedThisFrame = true;
-                }
+            } else if (code === 'ArrowRight' || code === 'KeyD' || key === 'ArrowRight' || key === 'd' || key === 'D' || key === 'в' || key === 'В') {
+                if (!directionChangedThisFrame && direction !== 'LEFT') { direction = 'RIGHT'; directionChangedThisFrame = true; }
                 e.preventDefault();
             }
         }
@@ -2578,570 +2497,683 @@
         updateGlobalLeaderboard();
         draw();
     }
-    // ---------- РАЗДЕЛ ЖИЗНЬ (полностью обновлённый) ----------
-if (typeof lifeFactsAll === 'undefined') {
-    var lifeFactsAll = [];
-    var lifeFactsOffset = 0;
-    var currentSortOrder = 'newest';
-    var lifeStatsTimer = null;
-    var countdownTimer = null;
-}
-
-function initLifeLocalTabs() {
-    const tabs = document.querySelectorAll('#lifeLocalTabs .local-tab');
-    const contents = {
-        lifeFacts: document.getElementById('lifeFactsContent'),
-        lifeStats: document.getElementById('lifeStatsContent'),
-        lifeZodiac: document.getElementById('lifeZodiacContent'),
-        lifeCountdown: document.getElementById('lifeCountdownContent')
-    };
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = tab.dataset.local;
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            Object.values(contents).forEach(c => {
-                if (c) c.classList.remove('active');
+    
+    // ---------- РАЗДЕЛ ЖИЗНЬ (обновлённый, исправленный) ----------
+    let lifeFactsAll = [];
+    let lifeFactsOffset = 0;
+    let currentSortOrder = 'newest';
+    let lifeStatsTimer = null;
+    let countdownTimer = null;
+    
+    function initLifeLocalTabs() {
+        const tabs = document.querySelectorAll('#lifeLocalTabs .local-tab');
+        const contents = {
+            lifeFacts: document.getElementById('lifeFactsContent'),
+            lifeStats: document.getElementById('lifeStatsContent'),
+            lifeZodiac: document.getElementById('lifeZodiacContent'),
+            lifeCountdown: document.getElementById('lifeCountdownContent')
+        };
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.local;
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                Object.values(contents).forEach(c => {
+                    if (c) c.classList.remove('active');
+                });
+                if (contents[target]) contents[target].classList.add('active');
+                if (target === 'lifeFacts') updateLifeFacts();
+                if (target === 'lifeStats') startLifeTimer();
+                if (target === 'lifeZodiac') initInvestorGame();
+                if (target === 'lifeCountdown') renderCountdownList();
             });
-            if (contents[target]) {
-                contents[target].classList.add('active');
-            }
-
-            if (target === 'lifeFacts') updateLifeFacts();
-            if (target === 'lifeStats') startLifeTimer();
-            if (target === 'lifeZodiac') initInvestorGame();   // вызов игры
-            if (target === 'lifeCountdown') renderCountdownList();
         });
-    });
-    if (tabs.length > 0) tabs[0].click();
-}
-
-// ---------- СОБЫТИЯ (история, фильтры) ----------
-function updateSortButtons() {
-    const sortNewest = document.getElementById('sortNewest');
-    const sortOldest = document.getElementById('sortOldest');
-    const sortRandom = document.getElementById('sortRandom');
-    if (!sortNewest || !sortOldest || !sortRandom) return;
-    if (currentSortOrder === 'newest') {
-        sortNewest.style.background = '#3b82f6'; sortNewest.style.color = 'white';
-        sortOldest.style.background = '#eef2f6'; sortOldest.style.color = '#1f2937';
-        sortRandom.style.background = '#eef2f6'; sortRandom.style.color = '#1f2937';
-    } else if (currentSortOrder === 'oldest') {
-        sortOldest.style.background = '#3b82f6'; sortOldest.style.color = 'white';
-        sortNewest.style.background = '#eef2f6'; sortNewest.style.color = '#1f2937';
-        sortRandom.style.background = '#eef2f6'; sortRandom.style.color = '#1f2937';
-    } else if (currentSortOrder === 'random') {
-        sortRandom.style.background = '#3b82f6'; sortRandom.style.color = 'white';
-        sortNewest.style.background = '#eef2f6'; sortNewest.style.color = '#1f2937';
-        sortOldest.style.background = '#eef2f6'; sortOldest.style.color = '#1f2937';
+        if (tabs.length > 0) tabs[0].click();
     }
-}
-function sortEvents(order) {
-    currentSortOrder = order;
-    updateSortButtons();
-    lifeFactsOffset = 0;
-    if (order === 'newest') lifeFactsAll.sort((a,b) => b.year - a.year);
-    else if (order === 'oldest') lifeFactsAll.sort((a,b) => a.year - b.year);
-    else if (order === 'random') shuffleArray(lifeFactsAll);
-    appendFactsSlice(true);
-}
-function shuffleArray(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
+    
+    function updateSortButtons() {
+        const sortNewest = document.getElementById('sortNewest');
+        const sortOldest = document.getElementById('sortOldest');
+        const sortRandom = document.getElementById('sortRandom');
+        if (!sortNewest || !sortOldest || !sortRandom) return;
+        if (currentSortOrder === 'newest') {
+            sortNewest.style.background = '#3b82f6'; sortNewest.style.color = 'white';
+            sortOldest.style.background = '#eef2f6'; sortOldest.style.color = '#1f2937';
+            sortRandom.style.background = '#eef2f6'; sortRandom.style.color = '#1f2937';
+        } else if (currentSortOrder === 'oldest') {
+            sortOldest.style.background = '#3b82f6'; sortOldest.style.color = 'white';
+            sortNewest.style.background = '#eef2f6'; sortNewest.style.color = '#1f2937';
+            sortRandom.style.background = '#eef2f6'; sortRandom.style.color = '#1f2937';
+        } else if (currentSortOrder === 'random') {
+            sortRandom.style.background = '#3b82f6'; sortRandom.style.color = 'white';
+            sortNewest.style.background = '#eef2f6'; sortNewest.style.color = '#1f2937';
+            sortOldest.style.background = '#eef2f6'; sortOldest.style.color = '#1f2937';
+        }
     }
-}
-const localEventsList = [
-    { year: 1961, text: '🚀 Юрий Гагарин совершил первый полёт в космос', type: 'local' },
-    { year: 1945, text: '✌️ День Победы над нацистской Германией', type: 'local' },
-    { year: 988, text: '⛪ Крещение Руси князем Владимиром', type: 'local' },
-    { year: 1991, text: '🌍 Распад СССР', type: 'local' },
-    { year: 1820, text: '❄️ Открытие Антарктиды', type: 'local' },
-    { year: 1861, text: '📜 Отмена крепостного права в России', type: 'local' },
-    { year: 1969, text: '🚀 Высадка человека на Луну', type: 'local' }
-];
-async function fetchOnThisDay(month, day) {
-    const base = 'https://ru.wikipedia.org/api/rest_v1/feed/onthisday';
-    const headers = new Headers({ 'User-Agent': 'MoneyCalcApp/1.0 (https://nikodrem.github.io; contact@example.com)' });
-    const [selectedResp, birthsResp, holidaysResp, eventsResp] = await Promise.all([
-        fetch(`${base}/selected/${month}/${day}`, { headers, cache: 'no-store' }),
-        fetch(`${base}/births/${month}/${day}`, { headers, cache: 'no-store' }),
-        fetch(`${base}/holidays/${month}/${day}`, { headers, cache: 'no-store' }),
-        fetch(`${base}/events/${month}/${day}`, { headers, cache: 'no-store' }).catch(() => null)
-    ]);
-    const selectedData = selectedResp.ok ? await selectedResp.json() : {};
-    const birthsData = birthsResp.ok ? await birthsResp.json() : {};
-    const holidaysData = holidaysResp.ok ? await holidaysResp.json() : {};
-    let eventsData = { events: [] };
-    if (eventsResp && eventsResp.ok) eventsData = await eventsResp.json();
-
-    const selectedEvents = (selectedData.selected || []).map(e => ({ year: e.year, text: e.text, type: 'selected' }));
-    const importantKeywords = ['царь','король','император','президент','генеральный секретарь','академик','нобелевский лауреат','основатель','изобретатель','художник','композитор','писатель','поэт','философ','учёный','физик','химик','биолог','математик','астроном','полководец','путешественник','первооткрыватель'];
-    const birthsEvents = (birthsData.births || []).filter(e => importantKeywords.some(kw => e.text.toLowerCase().includes(kw))).map(e => ({ year: e.year, text: `🎂 ${e.text}`, type: 'birth' }));
-    const holidaysEvents = (holidaysData.holidays || []).map(e => ({ year: null, text: `🎉 ${e.text}`, type: 'holiday' }));
-    const events = (eventsData.events || []).filter(e => !e.text.toLowerCase().includes('война') && !e.text.toLowerCase().includes('смерть')).map(e => ({ year: e.year, text: e.text, type: 'event' }));
-    let all = [...selectedEvents, ...birthsEvents, ...holidaysEvents, ...events, ...localEventsList];
-    const seen = new Set();
-    const unique = all.filter(item => {
-        const key = `${item.year || 0}|${item.text.slice(0,60)}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-    });
-    unique.sort((a,b) => (a.year || 0) - (b.year || 0));
-    return unique;
-}
-async function updateLifeFacts() {
-    const input = document.getElementById('lifeBirthDateInput');
-    const loadingDiv = document.getElementById('lifeFactsLoading');
-    const listDiv = document.getElementById('lifeFactsList');
-    const localDiv = document.getElementById('lifeFactsLocal');
-    const headerDiv = document.getElementById('lifeFactsHeader');
-    if (!input.value) {
-        const randomYear = new Date().getFullYear() - 25 + Math.floor(Math.random() * 5);
-        const randomDate = `${randomYear}-${String(Math.floor(Math.random()*12)+1).padStart(2,'0')}-${String(Math.floor(Math.random()*28)+1).padStart(2,'0')}`;
-        input.value = randomDate;
-        document.getElementById('lifeStatsBirthInput').value = randomDate;
-        localStorage.setItem('lifeBirthDate', randomDate);
-    }
-    const date = new Date(input.value);
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    headerDiv.innerText = `📌 ${day}.${String(month).padStart(2,'0')} – события в истории`;
-    loadingDiv.style.display = 'block';
-    listDiv.innerHTML = '';
-    localDiv.innerHTML = '';
-    lifeFactsAll = [];
-    lifeFactsOffset = 0;
-    try {
-        lifeFactsAll = await fetchOnThisDay(month, day);
-        currentSortOrder = 'newest';
+    
+    function sortEvents(order) {
+        currentSortOrder = order;
         updateSortButtons();
-        lifeFactsAll.sort((a,b) => b.year - a.year);
-        appendFactsSlice(true);
-        localDiv.innerHTML = '✅ Данные загружены из Wikipedia и локального архива.';
-    } catch (e) {
-        localDiv.innerHTML = '⚠️ Не удалось загрузить Wikipedia. Показаны локальные события.';
-        lifeFactsAll = [...localEventsList];
-        currentSortOrder = 'newest';
-        updateSortButtons();
-        lifeFactsAll.sort((a,b) => b.year - a.year);
+        lifeFactsOffset = 0;
+        if (order === 'newest') lifeFactsAll.sort((a,b) => b.year - a.year);
+        else if (order === 'oldest') lifeFactsAll.sort((a,b) => a.year - b.year);
+        else if (order === 'random') shuffleArray(lifeFactsAll);
         appendFactsSlice(true);
     }
-    loadingDiv.style.display = 'none';
-}
-function appendFactsSlice(reset = false) {
-    const listDiv = document.getElementById('lifeFactsList');
-    if (reset) { listDiv.innerHTML = ''; lifeFactsOffset = 0; }
-    const slice = lifeFactsAll.slice(lifeFactsOffset, lifeFactsOffset + 5);
-    if (slice.length === 0) {
-        const moreBtn = document.getElementById('lifeFactsMoreBtn');
-        if (moreBtn) moreBtn.remove();
-        return;
+    
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
     }
-    const fragment = document.createDocumentFragment();
-    slice.forEach(e => {
-        const div = document.createElement('div');
-        div.style.cssText = 'background:#334155; border-radius:20px; padding:8px 12px; margin:6px 0; color:#e2e8f0; font-size:14px;';
-        div.innerHTML = `<strong>${e.year || '📅'}</strong> – ${e.text}`;
-        fragment.appendChild(div);
-    });
-    listDiv.appendChild(fragment);
-    lifeFactsOffset += 5;
-    const oldBtn = document.getElementById('lifeFactsMoreBtn');
-    if (oldBtn) oldBtn.remove();
-    if (lifeFactsOffset < lifeFactsAll.length) {
-        const moreBtn = document.createElement('button');
-        moreBtn.id = 'lifeFactsMoreBtn';
-        moreBtn.className = 'calc-btn';
-        moreBtn.style.cssText = 'margin-top:8px; height:40px;';
-        moreBtn.innerText = 'Ещё';
-        moreBtn.addEventListener('click', (e) => { e.preventDefault(); appendFactsSlice(false); });
-        listDiv.appendChild(moreBtn);
-    }
-}
-document.getElementById('lifeBirthDateInput').addEventListener('change', function() {
-    document.getElementById('lifeStatsBirthInput').value = this.value;
-    localStorage.setItem('lifeBirthDate', this.value);
-    updateLifeFacts();
-});
-// Привязка кнопок сортировки
-document.addEventListener('DOMContentLoaded', () => {
-    const btnNewest = document.getElementById('sortNewest');
-    const btnOldest = document.getElementById('sortOldest');
-    const btnRandom = document.getElementById('sortRandom');
-    if (btnNewest) btnNewest.addEventListener('click', () => sortEvents('newest'));
-    if (btnOldest) btnOldest.addEventListener('click', () => sortEvents('oldest'));
-    if (btnRandom) btnRandom.addEventListener('click', () => sortEvents('random'));
-});
-
-// ---------- МОИ ДАННЫЕ (жизнь, планеты, нумерология) ----------
-function startLifeTimer() {
-    if (lifeStatsTimer) clearInterval(lifeStatsTimer);
-    const birthInput = document.getElementById('lifeStatsBirthInput');
-    if (!birthInput.value) return;
-    lifeStatsTimer = setInterval(() => updateLifeStats(), 1000);
-    updateLifeStats();
-}
-function getZodiacSign(day, month) {
-    const signs = [
-        { name:'Козерог', emoji:'♑', start:[12,22], end:[1,19], signEn:'capricorn' }, { name:'Водолей', emoji:'♒', start:[1,20], end:[2,18], signEn:'aquarius' }, { name:'Рыбы', emoji:'♓', start:[2,19], end:[3,20], signEn:'pisces' }, { name:'Овен', emoji:'♈', start:[3,21], end:[4,19], signEn:'aries' }, { name:'Телец', emoji:'♉', start:[4,20], end:[5,20], signEn:'taurus' }, { name:'Близнецы', emoji:'♊', start:[5,21], end:[6,21], signEn:'gemini' }, { name:'Рак', emoji:'♋', start:[6,22], end:[7,22], signEn:'cancer' }, { name:'Лев', emoji:'♌', start:[7,23], end:[8,22], signEn:'leo' }, { name:'Дева', emoji:'♍', start:[8,23], end:[9,22], signEn:'virgo' }, { name:'Весы', emoji:'♎', start:[9,23], end:[10,23], signEn:'libra' }, { name:'Скорпион', emoji:'♏', start:[10,24], end:[11,22], signEn:'scorpio' }, { name:'Стрелец', emoji:'♐', start:[11,23], end:[12,21], signEn:'sagittarius' }
+    
+    const localEventsList = [
+        { year: 1961, text: '🚀 Юрий Гагарин совершил первый полёт в космос', type: 'local' },
+        { year: 1945, text: '✌️ День Победы над нацистской Германией', type: 'local' },
+        { year: 988, text: '⛪ Крещение Руси князем Владимиром', type: 'local' },
+        { year: 1991, text: '🌍 Распад СССР', type: 'local' },
+        { year: 1820, text: '❄️ Открытие Антарктиды', type: 'local' },
+        { year: 1861, text: '📜 Отмена крепостного права в России', type: 'local' },
+        { year: 1969, text: '🚀 Высадка человека на Луну', type: 'local' }
     ];
-    return signs.find(s => (month === s.start[0] && day >= s.start[1]) || (month === s.end[0] && day <= s.end[1])) || signs[0];
-}
-function updateLifeStats() {
-    const birthInput = document.getElementById('lifeStatsBirthInput');
-    if (!birthInput.value) return;
-    const birth = new Date(birthInput.value);
-    const now = new Date();
-    const diffMs = now - birth;
-    const totalSeconds = Math.floor(diffMs / 1000), totalMinutes = Math.floor(totalSeconds / 60), totalHours = Math.floor(totalMinutes / 60), totalDays = Math.floor(totalHours / 24), totalWeeks = Math.floor(totalDays / 7);
-    if (typeof formatNumber === 'function') {
-        document.getElementById('lifeSeconds').innerText = formatNumber(totalSeconds, 1);
-        document.getElementById('lifeMinutes').innerText = formatNumber(totalMinutes, 1);
-        document.getElementById('lifeHours').innerText = formatNumber(totalHours, 1);
-        document.getElementById('lifeDays').innerText = formatNumber(totalDays, 1);
-        document.getElementById('lifeWeeks').innerText = formatNumber(totalWeeks, 1);
-    } else {
-        document.getElementById('lifeSeconds').innerText = totalSeconds.toLocaleString();
-        document.getElementById('lifeMinutes').innerText = totalMinutes.toLocaleString();
-        document.getElementById('lifeHours').innerText = totalHours.toLocaleString();
-        document.getElementById('lifeDays').innerText = totalDays.toLocaleString();
-        document.getElementById('lifeWeeks').innerText = totalWeeks.toLocaleString();
+    
+    async function fetchOnThisDay(month, day) {
+        const base = 'https://ru.wikipedia.org/api/rest_v1/feed/onthisday';
+        const headers = new Headers({ 'User-Agent': 'MoneyCalcApp/1.0 (https://nikodrem.github.io; contact@example.com)' });
+        const [selectedResp, birthsResp, holidaysResp, eventsResp] = await Promise.all([
+            fetch(`${base}/selected/${month}/${day}`, { headers, cache: 'no-store' }),
+            fetch(`${base}/births/${month}/${day}`, { headers, cache: 'no-store' }),
+            fetch(`${base}/holidays/${month}/${day}`, { headers, cache: 'no-store' }),
+            fetch(`${base}/events/${month}/${day}`, { headers, cache: 'no-store' }).catch(() => null)
+        ]);
+        const selectedData = selectedResp.ok ? await selectedResp.json() : {};
+        const birthsData = birthsResp.ok ? await birthsResp.json() : {};
+        const holidaysData = holidaysResp.ok ? await holidaysResp.json() : {};
+        let eventsData = { events: [] };
+        if (eventsResp && eventsResp.ok) eventsData = await eventsResp.json();
+    
+        const selectedEvents = (selectedData.selected || []).map(e => ({ year: e.year, text: e.text, type: 'selected' }));
+        const importantKeywords = ['царь','король','император','президент','генеральный секретарь','академик','нобелевский лауреат','основатель','изобретатель','художник','композитор','писатель','поэт','философ','учёный','физик','химик','биолог','математик','астроном','полководец','путешественник','первооткрыватель'];
+        const birthsEvents = (birthsData.births || []).filter(e => importantKeywords.some(kw => e.text.toLowerCase().includes(kw))).map(e => ({ year: e.year, text: `🎂 ${e.text}`, type: 'birth' }));
+        const holidaysEvents = (holidaysData.holidays || []).map(e => ({ year: null, text: `🎉 ${e.text}`, type: 'holiday' }));
+        const events = (eventsData.events || []).filter(e => !e.text.toLowerCase().includes('война') && !e.text.toLowerCase().includes('смерть')).map(e => ({ year: e.year, text: e.text, type: 'event' }));
+        let all = [...selectedEvents, ...birthsEvents, ...holidaysEvents, ...events, ...localEventsList];
+        const seen = new Set();
+        const unique = all.filter(item => {
+            const key = `${item.year || 0}|${item.text.slice(0,60)}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+        unique.sort((a,b) => (a.year || 0) - (b.year || 0));
+        return unique;
     }
-    const nextBirthday = new Date(now.getFullYear(), birth.getMonth(), birth.getDate());
-    if (nextBirthday < now) nextBirthday.setFullYear(now.getFullYear() + 1);
-    document.getElementById('lifeNextBirthday').innerText = `🎉 До след. ДР: ${Math.ceil((nextBirthday - now) / 86400000)} дн.`;
-    const zodiac = getZodiacSign(birth.getDate(), birth.getMonth() + 1);
-    document.getElementById('lifeStatsZodiac').innerHTML = `Знак зодиака: ${zodiac.emoji} ${zodiac.name}`;
-    const planetYears = { 'Меркурий':87.97, 'Венера':224.7, 'Марс':686.98, 'Юпитер':4332.59, 'Сатурн':10759.22, 'Уран':30688.5, 'Нептун':60182.0 };
-    const earthYears = totalDays / 365.2422;
-    document.getElementById('planetAges').innerHTML = Object.entries(planetYears).map(([name, orbit]) => `<div class="worth-item"><div class="worth-number">${(earthYears * 365.2422 / orbit).toFixed(2)}</div><div class="worth-label">${name}</div></div>`).join('');
-    const heartbeats = totalMinutes * 70, breaths = totalMinutes * 12;
-    if (typeof formatNumber === 'function') {
+    
+    async function updateLifeFacts() {
+        const input = document.getElementById('lifeBirthDateInput');
+        const loadingDiv = document.getElementById('lifeFactsLoading');
+        const listDiv = document.getElementById('lifeFactsList');
+        const localDiv = document.getElementById('lifeFactsLocal');
+        const headerDiv = document.getElementById('lifeFactsHeader');
+        if (!input.value) {
+            const randomYear = new Date().getFullYear() - 25 + Math.floor(Math.random() * 5);
+            const randomDate = `${randomYear}-${String(Math.floor(Math.random()*12)+1).padStart(2,'0')}-${String(Math.floor(Math.random()*28)+1).padStart(2,'0')}`;
+            input.value = randomDate;
+            document.getElementById('lifeStatsBirthInput').value = randomDate;
+            localStorage.setItem('lifeBirthDate', randomDate);
+        }
+        const date = new Date(input.value);
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        headerDiv.innerText = `📌 ${day}.${String(month).padStart(2,'0')} – события в истории`;
+        loadingDiv.style.display = 'block';
+        listDiv.innerHTML = '';
+        localDiv.innerHTML = '';
+        lifeFactsAll = [];
+        lifeFactsOffset = 0;
+        try {
+            lifeFactsAll = await fetchOnThisDay(month, day);
+            currentSortOrder = 'newest';
+            updateSortButtons();
+            lifeFactsAll.sort((a,b) => b.year - a.year);
+            appendFactsSlice(true);
+            localDiv.innerHTML = '✅ Данные загружены из Wikipedia и локального архива.';
+        } catch (e) {
+            localDiv.innerHTML = '⚠️ Не удалось загрузить Wikipedia. Показаны локальные события.';
+            lifeFactsAll = [...localEventsList];
+            currentSortOrder = 'newest';
+            updateSortButtons();
+            lifeFactsAll.sort((a,b) => b.year - a.year);
+            appendFactsSlice(true);
+        }
+        loadingDiv.style.display = 'none';
+    }
+    
+    function appendFactsSlice(reset = false) {
+        const listDiv = document.getElementById('lifeFactsList');
+        if (reset) { listDiv.innerHTML = ''; lifeFactsOffset = 0; }
+        const slice = lifeFactsAll.slice(lifeFactsOffset, lifeFactsOffset + 5);
+        if (slice.length === 0) {
+            const moreBtn = document.getElementById('lifeFactsMoreBtn');
+            if (moreBtn) moreBtn.remove();
+            return;
+        }
+        const fragment = document.createDocumentFragment();
+        slice.forEach(e => {
+            const div = document.createElement('div');
+            div.style.cssText = 'background:#334155; border-radius:20px; padding:8px 12px; margin:6px 0; color:#e2e8f0; font-size:14px;';
+            div.innerHTML = `<strong>${e.year || '📅'}</strong> – ${e.text}`;
+            fragment.appendChild(div);
+        });
+        listDiv.appendChild(fragment);
+        lifeFactsOffset += 5;
+        const oldBtn = document.getElementById('lifeFactsMoreBtn');
+        if (oldBtn) oldBtn.remove();
+        if (lifeFactsOffset < lifeFactsAll.length) {
+            const moreBtn = document.createElement('button');
+            moreBtn.id = 'lifeFactsMoreBtn';
+            moreBtn.className = 'calc-btn';
+            moreBtn.style.cssText = 'margin-top:8px; height:40px;';
+            moreBtn.innerText = 'Ещё';
+            moreBtn.addEventListener('click', (e) => { e.preventDefault(); appendFactsSlice(false); });
+            listDiv.appendChild(moreBtn);
+        }
+    }
+    
+    function startLifeTimer() {
+        if (lifeStatsTimer) clearInterval(lifeStatsTimer);
+        const birthInput = document.getElementById('lifeStatsBirthInput');
+        if (!birthInput.value) return;
+        lifeStatsTimer = setInterval(() => updateLifeStats(), 1000);
+        updateLifeStats();
+    }
+    
+    function getZodiacSign(day, month) {
+        const signs = [
+            { name:'Козерог', emoji:'♑', start:[12,22], end:[1,19] }, { name:'Водолей', emoji:'♒', start:[1,20], end:[2,18] }, { name:'Рыбы', emoji:'♓', start:[2,19], end:[3,20] }, { name:'Овен', emoji:'♈', start:[3,21], end:[4,19] }, { name:'Телец', emoji:'♉', start:[4,20], end:[5,20] }, { name:'Близнецы', emoji:'♊', start:[5,21], end:[6,21] }, { name:'Рак', emoji:'♋', start:[6,22], end:[7,22] }, { name:'Лев', emoji:'♌', start:[7,23], end:[8,22] }, { name:'Дева', emoji:'♍', start:[8,23], end:[9,22] }, { name:'Весы', emoji:'♎', start:[9,23], end:[10,23] }, { name:'Скорпион', emoji:'♏', start:[10,24], end:[11,22] }, { name:'Стрелец', emoji:'♐', start:[11,23], end:[12,21] }
+        ];
+        return signs.find(s => (month === s.start[0] && day >= s.start[1]) || (month === s.end[0] && day <= s.end[1])) || signs[0];
+    }
+    
+    function updateLifeStats() {
+        const birthInput = document.getElementById('lifeStatsBirthInput');
+        if (!birthInput.value) return;
+        const birth = new Date(birthInput.value);
+        const now = new Date();
+        const diffMs = now - birth;
+        const totalSeconds = Math.floor(diffMs / 1000);
+        const totalMinutes = Math.floor(totalSeconds / 60);
+        const totalHours = Math.floor(totalMinutes / 60);
+        const totalDays = Math.floor(totalHours / 24);
+        const totalWeeks = Math.floor(totalDays / 7);
+        const totalMonths = Math.floor(totalDays / 30.44);
+        const totalYears = Math.floor(totalDays / 365.2422);
+        
+        const lifeTimeBox = document.getElementById('lifeTimeBox');
+        if (lifeTimeBox) {
+            lifeTimeBox.innerHTML = `
+                <div class="time-item"><div class="time-number">${formatNumber(totalSeconds, 1)}</div><div class="time-label">секунд</div></div>
+                <div class="time-item"><div class="time-number">${formatNumber(totalMinutes, 1)}</div><div class="time-label">минут</div></div>
+                <div class="time-item"><div class="time-number">${formatNumber(totalHours, 1)}</div><div class="time-label">часов</div></div>
+                <div class="time-item"><div class="time-number">${formatNumber(totalDays, 1)}</div><div class="time-label">дней</div></div>
+                <div class="time-item"><div class="time-number">${formatNumber(totalWeeks, 1)}</div><div class="time-label">недель</div></div>
+                <div class="time-item"><div class="time-number">${formatNumber(totalMonths, 1)}</div><div class="time-label">месяцев</div></div>
+                <div class="time-item"><div class="time-number">${formatNumber(totalYears, 1)}</div><div class="time-label">лет</div></div>
+            `;
+        }
+        
+        const nextBirthday = new Date(now.getFullYear(), birth.getMonth(), birth.getDate());
+        if (nextBirthday < now) nextBirthday.setFullYear(now.getFullYear() + 1);
+        document.getElementById('lifeNextBirthday').innerHTML = `🎉 До след. ДР: ${Math.ceil((nextBirthday - now) / 86400000)} дн.`;
+        const zodiac = getZodiacSign(birth.getDate(), birth.getMonth() + 1);
+        document.getElementById('lifeStatsZodiac').innerHTML = `Знак зодиака: ${zodiac.emoji} ${zodiac.name}`;
+        
+        const planetYears = { 'Меркурий':87.97, 'Венера':224.7, 'Марс':686.98, 'Юпитер':4332.59, 'Сатурн':10759.22, 'Уран':30688.5, 'Нептун':60182.0 };
+        const earthYears = totalDays / 365.2422;
+        document.getElementById('planetAges').innerHTML = Object.entries(planetYears).map(([name, orbit]) => `<div class="worth-item"><div class="worth-number">${(earthYears * 365.2422 / orbit).toFixed(2)}</div><div class="worth-label">${name}</div></div>`).join('');
+        
+        const heartbeats = totalMinutes * 70;
+        const breaths = totalMinutes * 12;
         document.getElementById('heartbeats').innerText = formatNumber(heartbeats, 1);
         document.getElementById('breaths').innerText = formatNumber(breaths, 1);
-    } else {
-        document.getElementById('heartbeats').innerText = heartbeats.toLocaleString();
-        document.getElementById('breaths').innerText = breaths.toLocaleString();
+        
+        const sumDigits = (num) => num.toString().split('').reduce((a,b) => a + parseInt(b), 0);
+        const reduceToOne = (num) => { let n = num; while (n > 9 && n !== 11 && n !== 22) n = sumDigits(n); return n; };
+        const birthDay = birth.getDate(), birthMonth = birth.getMonth() + 1, birthYear = birth.getFullYear();
+        const soulNumber = reduceToOne(birthDay);
+        const destinyNumber = reduceToOne(birthDay + birthMonth + birthYear);
+        const numDesc = { 1:'Лидерство', 2:'Партнёрство', 3:'Творчество', 4:'Порядок', 5:'Свобода', 6:'Гармония', 7:'Духовность', 8:'Власть', 9:'Гуманизм', 11:'Интуиция', 22:'Мастер-строитель' };
+        window.showNumToast = function(title, num) {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#1e293b; color:white; padding:8px 16px; border-radius:24px; z-index:3000; font-size:13px;';
+            toast.innerHTML = `<strong>${title} ${num}:</strong> ${numDesc[num] || 'Уникальное число.'}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        };
+        document.getElementById('numerology').innerHTML = `<div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;"><div style="background:#e2e8f0; border-radius:20px; padding:8px 12px; flex:1; cursor:pointer;" onclick="showNumToast('Число судьбы', ${destinyNumber})"><div>Число судьбы</div><div style="font-size:24px; font-weight:700;">${destinyNumber}</div></div><div style="background:#e2e8f0; border-radius:20px; padding:8px 12px; flex:1; cursor:pointer;" onclick="showNumToast('Число души', ${soulNumber})"><div>Число души</div><div style="font-size:24px; font-weight:700;">${soulNumber}</div></div></div><p style="font-size:12px; margin-top:8px;">Нажмите на число, чтобы узнать значение.</p>`;
+        if (darkMode) {
+            setTimeout(() => {
+                document.querySelectorAll('#numerology [style*="background:#e2e8f0"]').forEach(el => { el.style.background = '#334155'; el.style.color = '#cbd5e1'; });
+            }, 0);
+        }
     }
-    const sumDigits = (num) => num.toString().split('').reduce((a,b) => a + parseInt(b), 0);
-    const reduceToOne = (num) => { let n = num; while (n > 9 && n !== 11 && n !== 22) n = sumDigits(n); return n; };
-    const birthDay = birth.getDate(), birthMonth = birth.getMonth() + 1, birthYear = birth.getFullYear();
-    const soulNumber = reduceToOne(birthDay), destinyNumber = reduceToOne(birthDay + birthMonth + birthYear);
-    const numDesc = { 1:'Лидерство', 2:'Партнёрство', 3:'Творчество', 4:'Порядок', 5:'Свобода', 6:'Гармония', 7:'Духовность', 8:'Власть', 9:'Гуманизм', 11:'Интуиция', 22:'Мастер-строитель' };
-    window.showNumToast = function(title, num) {
-        const toast = document.createElement('div');
-        toast.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#1e293b; color:white; padding:8px 16px; border-radius:24px; z-index:3000; font-size:13px;';
-        toast.innerHTML = `<strong>${title} ${num}:</strong> ${numDesc[num] || 'Уникальное число.'}`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    };
-    document.getElementById('numerology').innerHTML = `<div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;"><div style="background:#e2e8f0; border-radius:20px; padding:8px 12px; flex:1; cursor:pointer;" onclick="showNumToast('Число судьбы', ${destinyNumber})"><div>Число судьбы</div><div style="font-size:24px; font-weight:700;">${destinyNumber}</div></div><div style="background:#e2e8f0; border-radius:20px; padding:8px 12px; flex:1; cursor:pointer;" onclick="showNumToast('Число души', ${soulNumber})"><div>Число души</div><div style="font-size:24px; font-weight:700;">${soulNumber}</div></div></div><p style="font-size:12px; margin-top:8px;">Нажмите на число, чтобы узнать значение.</p>`;
-    if (typeof darkMode !== 'undefined' && darkMode) {
-        setTimeout(() => {
-            document.querySelectorAll('#numerology [style*="background:#e2e8f0"]').forEach(el => { el.style.background = '#334155'; el.style.color = '#cbd5e1'; });
-        }, 0);
+    
+    // ---------- ИГРА ИНВЕСТОР ----------
+    let investBalance = 100000;
+    let userInvestments = {};
+    let currentPrices = {};
+    let priceRefreshInterval = null;
+    let priceHistory = {};
+    
+    const assets = [
+        { id: 'aapl', displayName: 'Яблочный ПК', ticker: 'AAPL', emoji: '🍎', sector: 'Технологии' },
+        { id: 'msft', displayName: 'МягкийСофт', ticker: 'MSFT', emoji: '💻', sector: 'Технологии' },
+        { id: 'googl', displayName: 'ГуглПлюс', ticker: 'GOOGL', emoji: '🔍', sector: 'Интернет' },
+        { id: 'amzn', displayName: 'АмазонкаЛогистик', ticker: 'AMZN', emoji: '📦', sector: 'Торговля' },
+        { id: 'tsla', displayName: 'Тэсла Моторс', ticker: 'TSLA', emoji: '⚡', sector: 'Авто' },
+        { id: 'gld', displayName: 'ЗолотойЗапас', ticker: 'GLD', emoji: '🥇', sector: 'Металлы' },
+        { id: 'uso', displayName: 'НефтянойБаррель', ticker: 'USO', emoji: '🛢️', sector: 'Энергия' }
+    ];
+    
+    function updatePriceHistory(assetId, newPrice) {
+        if (!priceHistory[assetId]) priceHistory[assetId] = [];
+        priceHistory[assetId].push(newPrice);
+        if (priceHistory[assetId].length > 20) priceHistory[assetId].shift();
     }
-}
-document.getElementById('lifeStatsBirthInput').addEventListener('change', function() {
-    document.getElementById('lifeBirthDateInput').value = this.value;
-    localStorage.setItem('lifeBirthDate', this.value);
-    startLifeTimer();
-});
-
-// ---------- ИГРА ИНВЕСТОР (полностью переработанная) ----------
-let investBalance = 100000;
-let userInvestments = {};
-let currentPrices = {};
-let priceRefreshInterval = null;
-let priceHistory = {};
-let blurShown = false;
-
-const assets = [
-    { id: 'aapl', displayName: 'Яблочный ПК', ticker: 'AAPL', emoji: '🍎', sector: 'Технологии' },
-    { id: 'msft', displayName: 'МягкийСофт', ticker: 'MSFT', emoji: '💻', sector: 'Технологии' },
-    { id: 'googl', displayName: 'ГуглПлюс', ticker: 'GOOGL', emoji: '🔍', sector: 'Интернет' },
-    { id: 'amzn', displayName: 'АмазонкаЛогистик', ticker: 'AMZN', emoji: '📦', sector: 'Торговля' },
-    { id: 'tsla', displayName: 'Тэсла Моторс', ticker: 'TSLA', emoji: '⚡', sector: 'Авто' },
-    { id: 'gld', displayName: 'ЗолотойЗапас', ticker: 'GLD', emoji: '🥇', sector: 'Металлы' },
-    { id: 'uso', displayName: 'НефтянойБаррель', ticker: 'USO', emoji: '🛢️', sector: 'Энергия' }
-];
-
-function updatePriceHistory(assetId, newPrice) {
-    if (!priceHistory[assetId]) priceHistory[assetId] = [];
-    priceHistory[assetId].push(newPrice);
-    if (priceHistory[assetId].length > 20) priceHistory[assetId].shift();
-}
-
-async function fetchCurrentPrices() {
-    const proxy = 'https://api.allorigins.win/raw?url=';
-    const tickers = assets.map(a => a.ticker).join(',');
-    try {
-        const response = await fetch(proxy + encodeURIComponent(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${tickers}`));
-        if (!response.ok) throw new Error('Ошибка загрузки');
-        const data = await response.json();
-        if (data.quoteResponse && data.quoteResponse.result) {
-            data.quoteResponse.result.forEach(quote => {
-                const asset = assets.find(a => a.ticker === quote.symbol);
-                if (asset && quote.regularMarketPrice) {
-                    const newPrice = quote.regularMarketPrice;
-                    currentPrices[asset.id] = newPrice;
-                    updatePriceHistory(asset.id, newPrice);
+    
+    async function fetchCurrentPrices() {
+        const proxy = 'https://api.allorigins.win/raw?url=';
+        const tickers = assets.map(a => a.ticker).join(',');
+        try {
+            const response = await fetch(proxy + encodeURIComponent(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${tickers}`));
+            if (!response.ok) throw new Error('Ошибка загрузки');
+            const data = await response.json();
+            if (data.quoteResponse && data.quoteResponse.result) {
+                data.quoteResponse.result.forEach(quote => {
+                    const asset = assets.find(a => a.ticker === quote.symbol);
+                    if (asset && quote.regularMarketPrice) {
+                        const newPrice = quote.regularMarketPrice;
+                        currentPrices[asset.id] = newPrice;
+                        updatePriceHistory(asset.id, newPrice);
+                    }
+                });
+            }
+            assets.forEach(asset => {
+                if (!currentPrices[asset.id]) {
+                    const base = 100 + Math.random() * 200;
+                    currentPrices[asset.id] = base;
+                    updatePriceHistory(asset.id, base);
                 }
             });
+        } catch (e) {
+            console.warn('Ошибка загрузки, использую заглушки', e);
+            assets.forEach(asset => {
+                const newPrice = (currentPrices[asset.id] || 100) * (0.98 + Math.random() * 0.04);
+                currentPrices[asset.id] = newPrice;
+                updatePriceHistory(asset.id, newPrice);
+            });
         }
-        assets.forEach(asset => {
-            if (!currentPrices[asset.id]) {
-                const base = 100 + Math.random() * 200;
-                currentPrices[asset.id] = base;
-                updatePriceHistory(asset.id, base);
-            }
-        });
-    } catch (e) {
-        console.warn('Ошибка загрузки, использую заглушки', e);
-        assets.forEach(asset => {
-            const newPrice = (currentPrices[asset.id] || 100) * (0.98 + Math.random() * 0.04);
-            currentPrices[asset.id] = newPrice;
-            updatePriceHistory(asset.id, newPrice);
-        });
+        renderAssetsList();
+        updateTotalProfit();
+        saveGameState();
     }
-    renderAssetsList();
-    updateTotalProfit();
-    saveGameState();
-}
-
-function drawSparkline(canvasId, prices) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas || !prices || prices.length === 0) return;
-    const ctx = canvas.getContext('2d');
-    const w = canvas.clientWidth, h = canvas.clientHeight;
-    canvas.width = w; canvas.height = h;
-    ctx.clearRect(0, 0, w, h);
-    if (prices.length < 2) return;
-    const min = Math.min(...prices), max = Math.max(...prices), range = max - min || 1;
-    ctx.beginPath();
-    const step = w / (prices.length - 1);
-    ctx.strokeStyle = '#10b981';
-    ctx.lineWidth = 2;
-    for (let i = 0; i < prices.length; i++) {
-        const x = i * step;
-        const y = h - ((prices[i] - min) / range) * h;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+    
+    function drawSparkline(canvasId, prices) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas || !prices || prices.length === 0) return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.clientWidth, h = canvas.clientHeight;
+        canvas.width = w; canvas.height = h;
+        ctx.clearRect(0, 0, w, h);
+        if (prices.length < 2) return;
+        const min = Math.min(...prices), max = Math.max(...prices), range = max - min || 1;
+        ctx.beginPath();
+        const step = w / (prices.length - 1);
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < prices.length; i++) {
+            const x = i * step;
+            const y = h - ((prices[i] - min) / range) * h;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
     }
-    ctx.stroke();
-}
-
-function renderAssetsList() {
-    const container = document.getElementById('investAssetsList');
-    if (!container) return;
-    container.innerHTML = assets.map(asset => {
-        const price = currentPrices[asset.id] ? currentPrices[asset.id].toFixed(2) : '...';
-        const investment = userInvestments[asset.id];
-        const shares = investment ? investment.shares : 0;
-        const buyPrice = investment ? investment.buyPrice : 0;
-        const profit = shares > 0 ? (shares * (currentPrices[asset.id] || 0) - shares * buyPrice).toFixed(2) : 0;
-        const profitPercent = shares > 0 && buyPrice > 0 ? ((currentPrices[asset.id] / buyPrice - 1) * 100).toFixed(2) : 0;
-        const profitClass = profit > 0 ? 'profit-positive' : (profit < 0 ? 'profit-negative' : '');
-        const graphId = `spark_${asset.id}`;
-        setTimeout(() => { if (priceHistory[asset.id]) drawSparkline(graphId, priceHistory[asset.id]); }, 10);
-        return `
-            <div class="invest-asset-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="font-size: 28px;">${asset.emoji}</div>
-                        <div><div class="invest-asset-name">${asset.displayName} (акция)</div><div style="font-size: 12px; opacity: 0.7;">${asset.sector}</div></div>
+    
+    function renderAssetsList() {
+        const container = document.getElementById('investAssetsList');
+        if (!container) return;
+        container.innerHTML = assets.map(asset => {
+            const price = currentPrices[asset.id] ? currentPrices[asset.id].toFixed(2) : '...';
+            const investment = userInvestments[asset.id];
+            const shares = investment ? investment.shares : 0;
+            const buyPrice = investment ? investment.buyPrice : 0;
+            const profit = shares > 0 ? (shares * (currentPrices[asset.id] || 0) - shares * buyPrice).toFixed(2) : 0;
+            const profitPercent = shares > 0 && buyPrice > 0 ? ((currentPrices[asset.id] / buyPrice - 1) * 100).toFixed(2) : 0;
+            const profitClass = profit > 0 ? 'profit-positive' : (profit < 0 ? 'profit-negative' : '');
+            const graphId = `spark_${asset.id}`;
+            setTimeout(() => { if (priceHistory[asset.id]) drawSparkline(graphId, priceHistory[asset.id]); }, 10);
+            return `
+                <div class="invest-asset-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 28px;">${asset.emoji}</div>
+                            <div><div class="invest-asset-name">${asset.displayName} (акция)</div><div style="font-size: 12px; opacity: 0.7;">${asset.sector}</div></div>
+                        </div>
+                        <div style="text-align: right;"><div class="invest-asset-price">${price} ₽</div><div style="font-size: 12px;">за 1 шт.</div></div>
                     </div>
-                    <div style="text-align: right;"><div class="invest-asset-price">${price} ₽</div><div style="font-size: 12px;">за 1 шт.</div></div>
+                    <canvas id="${graphId}" class="spark-canvas"></canvas>
+                    ${shares > 0 ? `
+                    <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div style="font-size: 13px;">📊 У вас: <strong>${shares.toFixed(4)}</strong> шт.</div>
+                        <div style="font-size: 13px; ${profitClass}">💰 Прибыль: ${profit} ₽ (${profitPercent}%)</div>
+                        <button class="sell-btn" data-id="${asset.id}" style="background: #ef4444; border: none; border-radius: 60px; padding: 6px 20px; color: white; font-weight: 600; cursor: pointer;">Продать всё</button>
+                    </div>
+                    ` : ''}
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <input type="number" id="amount_${asset.id}" placeholder="Сумма (₽)" min="100" step="100" class="invest-input" style="flex:3; padding: 10px; border-radius: 60px;">
+                        <button class="buy-btn" data-id="${asset.id}" style="flex:2; background: #10b981; border: none; border-radius: 60px; padding: 10px; color: white; font-weight: 600; cursor: pointer;">Купить</button>
+                    </div>
                 </div>
-                <canvas id="${graphId}" class="spark-canvas"></canvas>
-                ${shares > 0 ? `
-                <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <div style="font-size: 13px;">📊 У вас: <strong>${shares.toFixed(4)}</strong> шт.</div>
-                    <div style="font-size: 13px; ${profitClass}">💰 Прибыль: ${profit} ₽ (${profitPercent}%)</div>
-                    <button class="sell-btn" data-id="${asset.id}" style="background: #ef4444; border: none; border-radius: 60px; padding: 6px 20px; color: white; font-weight: 600; cursor: pointer;">Продать всё</button>
-                </div>
-                ` : ''}
-                <div style="display: flex; gap: 8px; margin-top: 12px;">
-                    <input type="number" id="amount_${asset.id}" placeholder="Сумма (₽)" min="100" step="100" class="invest-input" style="flex:3; padding: 10px; border-radius: 60px;">
-                    <button class="buy-btn" data-id="${asset.id}" style="flex:2; background: #10b981; border: none; border-radius: 60px; padding: 10px; color: white; font-weight: 600; cursor: pointer;">Купить</button>
-                </div>
+            `;
+        }).join('');
+    
+        document.querySelectorAll('.buy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.id;
+                const input = document.getElementById(`amount_${id}`);
+                const amount = parseFloat(input.value);
+                if (!isNaN(amount) && amount >= 100 && amount <= investBalance) buyAsset(id, amount);
+                else if (amount > investBalance) alert('Недостаточно средств');
+                else alert('Введите сумму от 100 ₽');
+            });
+        });
+        document.querySelectorAll('.sell-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.id;
+                if (userInvestments[id]) sellAsset(id);
+            });
+        });
+    }
+    
+    function buyAsset(assetId, rubAmount) {
+        const price = currentPrices[assetId];
+        if (!price) { alert('Цена не загружена'); return; }
+        const shares = rubAmount / price;
+        if (shares <= 0) return;
+        if (rubAmount > investBalance) { alert('Недостаточно средств'); return; }
+        if (userInvestments[assetId]) {
+            const old = userInvestments[assetId];
+            const totalShares = old.shares + shares;
+            const totalCost = old.shares * old.buyPrice + rubAmount;
+            userInvestments[assetId] = { shares: totalShares, buyPrice: totalCost / totalShares, lastUpdate: Date.now() };
+        } else {
+            userInvestments[assetId] = { shares, buyPrice: price, lastUpdate: Date.now() };
+        }
+        investBalance -= rubAmount;
+        updateBalanceDisplay();
+        saveGameState();
+        renderAssetsList();
+    }
+    
+    function sellAsset(assetId) {
+        const inv = userInvestments[assetId];
+        if (!inv) return;
+        const currentPrice = currentPrices[assetId];
+        if (!currentPrice) { alert('Цена не загружена'); return; }
+        const revenue = inv.shares * currentPrice;
+        investBalance += revenue;
+        delete userInvestments[assetId];
+        updateBalanceDisplay();
+        saveGameState();
+        renderAssetsList();
+    }
+    
+    function updateBalanceDisplay() {
+        const balanceDiv = document.getElementById('investBalance');
+        if (balanceDiv) balanceDiv.innerText = `${investBalance.toFixed(0)} ₽`;
+        updateTotalProfit();
+    }
+    
+    function updateTotalProfit() {
+        let totalInvested = 0, totalCurrent = 0;
+        for (const [id, inv] of Object.entries(userInvestments)) {
+            const price = currentPrices[id] || 0;
+            totalInvested += inv.shares * inv.buyPrice;
+            totalCurrent += inv.shares * price;
+        }
+        const profit = totalCurrent - totalInvested;
+        const profitElem = document.getElementById('investTotalProfit');
+        if (profitElem) {
+            if (totalInvested > 0) {
+                profitElem.innerText = `📊 Прибыль: ${profit >= 0 ? '+' : ''}${profit.toFixed(2)} ₽`;
+                profitElem.style.color = profit >= 0 ? '#10b981' : '#ef4444';
+            } else profitElem.innerText = '';
+        }
+    }
+    
+    function saveGameState() {
+        localStorage.setItem('investorGame', JSON.stringify({ balance: investBalance, investments: userInvestments, lastSaveTime: Date.now() }));
+    }
+    
+    function loadGameState() {
+        const saved = localStorage.getItem('investorGame');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                investBalance = data.balance;
+                userInvestments = data.investments || {};
+                if (investBalance < 0) investBalance = 100000;
+                const now = Date.now();
+                const last = data.lastSaveTime || now;
+                const secondsPassed = Math.floor((now - last) / 1000);
+                if (secondsPassed > 0 && Object.keys(userInvestments).length > 0) {
+                    for (const [id, inv] of Object.entries(userInvestments)) {
+                        const oldPrice = inv.buyPrice;
+                        const minutes = secondsPassed / 60;
+                        const volatility = 0.005;
+                        const change = (Math.random() - 0.5) * volatility * minutes;
+                        const newPrice = oldPrice * (1 + change);
+                        currentPrices[id] = Math.max(1, newPrice);
+                        updatePriceHistory(id, currentPrices[id]);
+                    }
+                    let totalValue = 0;
+                    for (const [id, inv] of Object.entries(userInvestments)) {
+                        totalValue += inv.shares * (currentPrices[id] || inv.buyPrice);
+                    }
+                    investBalance = data.balance + totalValue - (Object.values(userInvestments).reduce((acc, inv) => acc + inv.shares * inv.buyPrice, 0));
+                    if (investBalance < 0) investBalance = 0;
+                    updateBalanceDisplay();
+                    saveGameState();
+                }
+            } catch(e) { }
+        }
+        fetchCurrentPrices().then(() => { renderAssetsList(); updateBalanceDisplay(); });
+    }
+    
+    function initBlur() {
+        const overlay = document.getElementById('investBlurOverlay');
+        const showBtn = document.getElementById('showLotsBtn');
+        if (overlay && showBtn) {
+            showBtn.addEventListener('click', () => { overlay.style.display = 'none'; localStorage.setItem('investBlurShown', 'true'); });
+            if (localStorage.getItem('investBlurShown') === 'true') overlay.style.display = 'none';
+            else overlay.style.display = 'flex';
+        }
+    }
+    
+    async function refreshPricesAndUpdate() {
+        const btn = document.getElementById('refreshInvestPrices');
+        if (btn) btn.disabled = true;
+        await fetchCurrentPrices();
+        if (btn) btn.disabled = false;
+        updateTotalProfit();
+        renderAssetsList();
+        saveGameState();
+    }
+    
+    function initInvestorGame() {
+        loadGameState();
+        initBlur();
+        updateBalanceDisplay();
+        refreshPricesAndUpdate();
+        if (priceRefreshInterval) clearInterval(priceRefreshInterval);
+        priceRefreshInterval = setInterval(() => { refreshPricesAndUpdate(); }, 5000);
+    }
+    
+    function showEconomicsModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-learn';
+        modal.innerHTML = `
+            <div class="modal-learn-card">
+                <div class="learn-title">📚 Основы экономики</div>
+                <div class="learn-text">Акция – это ценная бумага, дающая право на долю в компании. Цена акции зависит от спроса и предложения, новостей, отчётов.</div>
+                <div class="learn-text">📈 Как играть: Покупайте дёшево, продавайте дорого. Анализируйте графики: если цена идёт вверх – тренд восходящий; если вниз – нисходящий. Диверсифицируйте портфель, не вкладывайте всё в одну акцию.</div>
+                <div class="learn-text">💰 Зарабатывайте на разнице цен. Помните: рынок непредсказуем, но технический анализ помогает.</div>
+                <button id="closeLearnModal" class="calc-btn">Понятно</button>
             </div>
         `;
-    }).join('');
-
-    document.querySelectorAll('.buy-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const id = btn.dataset.id;
-            const input = document.getElementById(`amount_${id}`);
-            const amount = parseFloat(input.value);
-            if (!isNaN(amount) && amount >= 100 && amount <= investBalance) buyAsset(id, amount);
-            else if (amount > investBalance) alert('Недостаточно средств');
-            else alert('Введите сумму от 100 ₽');
-        });
-    });
-    document.querySelectorAll('.sell-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const id = btn.dataset.id;
-            if (userInvestments[id]) sellAsset(id);
-        });
-    });
-}
-
-function buyAsset(assetId, rubAmount) {
-    const price = currentPrices[assetId];
-    if (!price) { alert('Цена не загружена'); return; }
-    const shares = rubAmount / price;
-    if (shares <= 0) return;
-    if (rubAmount > investBalance) { alert('Недостаточно средств'); return; }
-    if (userInvestments[assetId]) {
-        const old = userInvestments[assetId];
-        const totalShares = old.shares + shares;
-        const totalCost = old.shares * old.buyPrice + rubAmount;
-        userInvestments[assetId] = { shares: totalShares, buyPrice: totalCost / totalShares, lastUpdate: Date.now() };
-    } else {
-        userInvestments[assetId] = { shares, buyPrice: price, lastUpdate: Date.now() };
+        document.body.appendChild(modal);
+        modal.querySelector('#closeLearnModal').addEventListener('click', () => modal.remove());
     }
-    investBalance -= rubAmount;
-    updateBalanceDisplay();
-    saveGameState();
-    renderAssetsList();
-}
-
-function sellAsset(assetId) {
-    const inv = userInvestments[assetId];
-    if (!inv) return;
-    const currentPrice = currentPrices[assetId];
-    if (!currentPrice) { alert('Цена не загружена'); return; }
-    const revenue = inv.shares * currentPrice;
-    investBalance += revenue;
-    delete userInvestments[assetId];
-    updateBalanceDisplay();
-    saveGameState();
-    renderAssetsList();
-}
-
-function updateBalanceDisplay() {
-    const balanceDiv = document.getElementById('investBalance');
-    if (balanceDiv) balanceDiv.innerText = `${investBalance.toFixed(0)} ₽`;
-    updateTotalProfit();
-}
-
-function updateTotalProfit() {
-    let totalInvested = 0, totalCurrent = 0;
-    for (const [id, inv] of Object.entries(userInvestments)) {
-        const price = currentPrices[id] || 0;
-        totalInvested += inv.shares * inv.buyPrice;
-        totalCurrent += inv.shares * price;
+    
+    // ---------- ОБРАТНЫЙ ОТСЧЁТ ----------
+    let countdownEvents = [];
+    
+    function loadCountdowns() {
+        const saved = localStorage.getItem('countdownEvents');
+        if (saved) countdownEvents = JSON.parse(saved);
+        else countdownEvents = [];
+        renderCountdownList();
     }
-    const profit = totalCurrent - totalInvested;
-    const profitElem = document.getElementById('investTotalProfit');
-    if (profitElem) {
-        if (totalInvested > 0) {
-            profitElem.innerText = `📊 Прибыль: ${profit >= 0 ? '+' : ''}${profit.toFixed(2)} ₽`;
-            profitElem.style.color = profit >= 0 ? '#10b981' : '#ef4444';
-        } else profitElem.innerText = '';
+    
+    function saveCountdowns() {
+        localStorage.setItem('countdownEvents', JSON.stringify(countdownEvents));
     }
-}
-
-function saveGameState() {
-    localStorage.setItem('investorGame', JSON.stringify({ balance: investBalance, investments: userInvestments, lastSaveTime: Date.now() }));
-}
-
-function loadGameState() {
-    const saved = localStorage.getItem('investorGame');
-    if (saved) {
-        try {
-            const data = JSON.parse(saved);
-            investBalance = data.balance;
-            userInvestments = data.investments || {};
-            if (investBalance < 0) investBalance = 100000;
-            // Пассивный доход за время отсутствия
-            const now = Date.now();
-            const last = data.lastSaveTime || now;
-            const secondsPassed = Math.floor((now - last) / 1000);
-            if (secondsPassed > 0 && Object.keys(userInvestments).length > 0) {
-                for (const [id, inv] of Object.entries(userInvestments)) {
-                    const oldPrice = inv.buyPrice;
-                    const minutes = secondsPassed / 60;
-                    const volatility = 0.005;
-                    const change = (Math.random() - 0.5) * volatility * minutes;
-                    const newPrice = oldPrice * (1 + change);
-                    currentPrices[id] = Math.max(1, newPrice);
-                    updatePriceHistory(id, currentPrices[id]);
-                }
-                let totalValue = 0;
-                for (const [id, inv] of Object.entries(userInvestments)) {
-                    totalValue += inv.shares * (currentPrices[id] || inv.buyPrice);
-                }
-                investBalance = data.balance + totalValue - (Object.values(userInvestments).reduce((acc, inv) => acc + inv.shares * inv.buyPrice, 0));
-                if (investBalance < 0) investBalance = 0;
-                updateBalanceDisplay();
-                saveGameState();
+    
+    function addCountdown() {
+        const name = document.getElementById('countdownName').value.trim();
+        const date = document.getElementById('countdownDate').value;
+        if (!name || !date) { alert('Заполните название и дату'); return; }
+        countdownEvents.push({ name, date, id: Date.now() });
+        saveCountdowns();
+        renderCountdownList();
+        document.getElementById('countdownName').value = '';
+        document.getElementById('countdownDate').value = '';
+    }
+    
+    function deleteCountdown(id) {
+        countdownEvents = countdownEvents.filter(ev => ev.id !== id);
+        saveCountdowns();
+        renderCountdownList();
+    }
+    
+    function renderCountdownList() {
+        const container = document.getElementById('countdownList');
+        if (!container) return;
+        if (countdownEvents.length === 0) {
+            container.innerHTML = '<div class="note">Нет событий. Добавьте выше.</div>';
+            return;
+        }
+        const now = new Date();
+        container.innerHTML = countdownEvents.map(ev => {
+            const target = new Date(ev.date);
+            const diff = target - now;
+            let text = '';
+            if (diff <= 0) text = 'Событие уже прошло';
+            else {
+                const days = Math.floor(diff / 86400000);
+                const hours = Math.floor((diff % 86400000) / 3600000);
+                const minutes = Math.floor((diff % 3600000) / 60000);
+                text = `${days} дн. ${hours} ч. ${minutes} мин.`;
             }
-        } catch(e) { }
+            return `
+                <div style="background:#334155; border-radius:28px; padding:12px 16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                    <div><strong>${escapeHtml(ev.name)}</strong><br><span style="font-size:12px;">${ev.date}</span><br><span>⏳ ${text}</span></div>
+                    <button class="delete-countdown" data-id="${ev.id}" style="background:#ef4444; border:none; border-radius:60px; padding:8px 16px; color:white;">Удалить</button>
+                </div>
+            `;
+        }).join('');
+        document.querySelectorAll('.delete-countdown').forEach(btn => {
+            btn.addEventListener('click', () => deleteCountdown(parseInt(btn.dataset.id)));
+        });
     }
-    fetchCurrentPrices().then(() => { renderAssetsList(); updateBalanceDisplay(); });
-}
-
-function initBlur() {
-    const overlay = document.getElementById('investBlurOverlay');
-    const showBtn = document.getElementById('showLotsBtn');
-    if (overlay && showBtn) {
-        showBtn.addEventListener('click', () => { overlay.style.display = 'none'; blurShown = true; });
-        if (localStorage.getItem('investBlurShown') === 'true') overlay.style.display = 'none';
-        else overlay.style.display = 'flex';
+    
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
     }
-}
-
-async function refreshPricesAndUpdate() {
-    const btn = document.getElementById('refreshInvestPrices');
-    if (btn) btn.disabled = true;
-    await fetchCurrentPrices();
-    if (btn) btn.disabled = false;
-    updateTotalProfit();
-    renderAssetsList();
-    saveGameState();
-}
-
-function initInvestorGame() {
-    loadGameState();
-    initBlur();
-    updateBalanceDisplay();
-    refreshPricesAndUpdate();
-    if (priceRefreshInterval) clearInterval(priceRefreshInterval);
-    priceRefreshInterval = setInterval(() => { refreshPricesAndUpdate(); }, 5000);
-}
-
-function showEconomicsModal() {
-    const modal = document.createElement('div');
-    modal.className = 'modal-learn';
-    modal.innerHTML = `
-        <div class="modal-learn-card">
-            <div class="learn-title">📚 Основы экономики</div>
-            <div class="learn-text">Акция – это ценная бумага, дающая право на долю в компании. Цена акции зависит от спроса и предложения, новостей, отчётов.</div>
-            <div class="learn-text">📈 Как играть: Покупайте дёшево, продавайте дорого. Анализируйте графики: если цена идёт вверх – тренд восходящий; если вниз – нисходящий. Диверсифицируйте портфель, не вкладывайте всё в одну акцию.</div>
-            <div class="learn-text">💰 Зарабатывайте на разнице цен. Помните: рынок непредсказуем, но технический анализ помогает.</div>
-            <button id="closeLearnModal" class="calc-btn">Понятно</button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    modal.querySelector('#closeLearnModal').addEventListener('click', () => modal.remove());
-}
-
-// Привязка кнопок обучения и обновления
-document.addEventListener('DOMContentLoaded', () => {
-    const learnBtn = document.getElementById('btnLearnEconomics');
-    if (learnBtn) learnBtn.addEventListener('click', showEconomicsModal);
-    const refreshBtn = document.getElementById('refreshInvestPrices');
-    if (refreshBtn) refreshBtn.addEventListener('click', refreshPricesAndUpdate);
-});
-window.addEventListener('beforeunload', () => {
-    if (priceRefreshInterval) clearInterval(priceRefreshInterval);
-    saveGameState();
-});
-
+    
+    // ---------- ГЛАВНАЯ ИНИЦИАЛИЗАЦИЯ ----------
+    document.addEventListener('DOMContentLoaded', () => {
+        // Загружаем сохранённые данные
+        loadTime();
+        loadMortgage();
+        loadGoalData();
+        const savedBirth = localStorage.getItem('lifeBirthDate');
+        if (savedBirth) {
+            document.getElementById('lifeBirthDateInput').value = savedBirth;
+            document.getElementById('lifeStatsBirthInput').value = savedBirth;
+        }
+        loadCountdowns();
+        
+        // Навешиваем обработчики основных кнопок
+        document.getElementById('calcBtn').addEventListener('click', () => { calculateTime(); saveTime(); });
+        document.getElementById('resetTimeBtn').addEventListener('click', resetTime);
+        document.getElementById('refreshCurrencyBtn').addEventListener('click', fetchExchangeRates);
+        document.getElementById('mortgageCalcBtn').addEventListener('click', () => { calculateMortgage(); saveMortgage(); });
+        document.getElementById('resetMortgageBtn').addEventListener('click', resetMortgage);
+        document.getElementById('calcGoalBtn').addEventListener('click', () => { calculateGoal(); saveGoalData(); updateCalendar(); });
+        document.getElementById('resetGoalBtn').addEventListener('click', resetGoal);
+        document.getElementById('modePercentBtn').addEventListener('click', () => toggleGoalMode('percent'));
+        document.getElementById('modeFixedBtn').addEventListener('click', () => toggleGoalMode('fixed'));
+        document.getElementById('add500').addEventListener('click', () => addToSaved(500));
+        document.getElementById('add1000').addEventListener('click', () => addToSaved(1000));
+        document.getElementById('add5000').addEventListener('click', () => addToSaved(5000));
+        document.getElementById('goalCalendar').addEventListener('change', updateCalendar);
+        document.getElementById('snakeLaunchBtn').addEventListener('click', launchSnakeGame);
+        
+        // Инициализация вкладок и локальных вкладок
+        initTabs();
+        initLocalTabs();
+        initLifeLocalTabs();
+        
+        // Первоначальный расчёт
+        calculateTime();
+        calculateMortgage();
+        calculateGoal();
+        updateCalendar();
+        fetchExchangeRates();
+        
+        // Таймер для обновления обратного отсчёта каждую минуту
+        setInterval(renderCountdownList, 60000);
+        
+        // Привязка кнопок сортировки событий
+        document.getElementById('sortNewest').addEventListener('click', () => sortEvents('newest'));
+        document.getElementById('sortOldest').addEventListener('click', () => sortEvents('oldest'));
+        document.getElementById('sortRandom').addEventListener('click', () => sortEvents('random'));
+        
+        // Кнопки для обратного отсчёта
+        document.getElementById('addCountdownBtn').addEventListener('click', addCountdown);
+        
+        // Кнопки для обучения и обновления инвестора (уже есть внутри, но продублируем для надёжности)
+        const learnBtn = document.getElementById('btnLearnEconomics');
+        if (learnBtn) learnBtn.addEventListener('click', showEconomicsModal);
+        const refreshInvestBtn = document.getElementById('refreshInvestPrices');
+        if (refreshInvestBtn) refreshInvestBtn.addEventListener('click', refreshPricesAndUpdate);
+        
+        // Версия
+        document.getElementById('versionText').innerText = `Версия ${APP_VERSION}`;
+    });
+    
+    window.addEventListener('beforeunload', () => {
+        if (priceRefreshInterval) clearInterval(priceRefreshInterval);
+        saveGameState();
+    });
 </script>
 </body>
 </html>
