@@ -1014,6 +1014,49 @@
             margin-top: 8px;
         }
         body.dark .spark-canvas { background: #1e293b; }
+
+        /* Дополнительные стили для раздела "Инвестор" */
+.invest-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.invest-title {
+    font-size: 22px;
+    font-weight: 700;
+}
+.btn-guide {
+    background: #8b5cf6;
+    border: none;
+    border-radius: 40px;
+    padding: 6px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.1s;
+    white-space: nowrap;
+}
+.btn-guide:active {
+    transform: scale(0.96);
+}
+body.dark .btn-guide {
+    background: #7c3aed;
+}
+/* Фиксированная высота для вкладок "Жизнь" */
+#lifeLocalTabs .local-tab {
+    white-space: nowrap;
+    font-size: 14px;
+    padding: 8px 12px;
+}
+#lifeLocalTabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+        
     </style>
 
     <!-- Вкладка 1: События -->
@@ -1045,31 +1088,23 @@
 
     <!-- Вкладка 3: Инвестор -->
 <div id="lifeZodiacContent" class="local-content">
-    <div class="life-box" style="padding: 16px; position: relative;">
-        <div style="text-align: center; margin-bottom: 16px;">
-            <div style="font-size: 22px; font-weight: 700;">🎮 Инвестор-симулятор</div>
-            <div style="font-size: 12px; color: #94a3b8;">Акции, графики, финансы</div>
+    <div class="life-box" style="padding: 16px;">
+        <div class="invest-header">
+            <div class="invest-title">🎮 Инвестиционный симулятор</div>
+            <button id="btnLearnEconomics" class="btn-guide">📘 Руководство</button>
         </div>
         <div style="background: #eef2f6; border-radius: 60px; padding: 12px 20px; margin-bottom: 16px; text-align: center;">
             <div>💰 Ваш капитал</div>
             <div style="font-size: 28px; font-weight: 700;" id="investBalance">100000 ₽</div>
             <div id="investTotalProfit" style="font-size: 12px;"></div>
         </div>
-        <button id="btnLearnEconomics" class="calc-btn btn-learn" style="margin-bottom: 12px;">📚 Основы экономики</button>
         <div style="background: #f8fafc; border-radius: 28px; padding: 12px; position: relative;">
             <div style="font-weight: 600; margin-bottom: 12px; text-align: center;">📈 Доступные акции</div>
             <div id="investAssetsContainer" style="position: relative;">
                 <div id="investAssetsList" style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;"></div>
-                <div id="investBlurOverlay" class="invest-blur-overlay" style="display: flex;">
-                    <div style="background: rgba(0,0,0,0.7); padding: 20px; border-radius: 60px; text-align: center;">
-                        <div style="color: white; margin-bottom: 16px;">🔒 Рынок скрыт</div>
-                        <button id="showLotsBtn">Разблокировать лоты</button>
-                    </div>
-                </div>
             </div>
-            <div style="font-size: 11px; text-align: center; margin-top: 10px;">Цены обновляются глобально каждые 5 сек</div>
+            <div style="font-size: 11px; text-align: center; margin-top: 10px;">Цены обновляются автоматически раз в 5 секунд</div>
         </div>
-        <button id="refreshInvestPrices" class="calc-btn" style="height: 44px; margin-top: 16px;">🔄 Обновить вручную</button>
         <div class="pseudo-science-note">⚠️ Игра не является инвестиционной рекомендацией. Названия изменены.</div>
     </div>
 </div>
@@ -2759,7 +2794,7 @@
         }
     }
     
-   // ---------- ИГРА ИНВЕСТОР (Детерминированные глобальные цены) ----------
+   // ---------- ИГРА ИНВЕСТОР (Детерминированные глобальные цены, без blur и кнопки обновления) ----------
 let investBalance = 100000;
 let userInvestments = {};
 let currentPrices = {};
@@ -2775,7 +2810,6 @@ const assets = [
     { id: 'tsla', displayName: 'Тэсла Моторс', ticker: 'TSLA', emoji: '⚡', sector: 'Авто', basePrice: 6200 },
     { id: 'gld', displayName: 'ЗолотойЗапас', ticker: 'GLD', emoji: '🥇', sector: 'Металлы', basePrice: 2100 },
     { id: 'uso', displayName: 'НефтянойБаррель', ticker: 'USO', emoji: '🛢️', sector: 'Энергия', basePrice: 1800 },
-    // Российские компании (изменённые названия)
     { id: 'sber', displayName: 'Сберегательный Банк', ticker: 'SBER', emoji: '🏦', sector: 'Банки', basePrice: 280 },
     { id: 'gazp', displayName: 'Газовый Гигант', ticker: 'GAZP', emoji: '🔥', sector: 'Энергия', basePrice: 195 },
     { id: 'lukoil', displayName: 'Нефтяной Гигант', ticker: 'LKOH', emoji: '⛽', sector: 'Энергия', basePrice: 680 },
@@ -2784,27 +2818,20 @@ const assets = [
     { id: 'magnit', displayName: 'Магнитная Розница', ticker: 'MGNT', emoji: '🛒', sector: 'Торговля', basePrice: 195 }
 ];
 
-// Генератор псевдослучайных чисел на основе времени (детерминированный для всех)
 function seededRandom(seed) {
     const x = Math.sin(seed) * 10000;
     return x - Math.floor(x);
 }
 
-// Обновление цен – используем текущее время с округлением до 5 секунд,
-// чтобы у всех пользователей были одинаковые значения в один момент
 function updatePrices() {
     const now = Date.now();
-    // Округляем до 5 секунд, чтобы все клиенты синхронно получали одни и те же цены
     const timeSlot = Math.floor(now / 5000) * 5000;
     const seed = timeSlot / 1000;
     
     for (let asset of assets) {
         let oldPrice = currentPrices[asset.id] || asset.basePrice;
-        // Генерируем изменение на основе синуса от времени + случайный шум, но детерминированный
-        let volatility = 0.015;
         let r = seededRandom(seed + asset.id.charCodeAt(0) * 100);
-        let change = (r - 0.5) * volatility;
-        // Добавляем лёгкий тренд (синус от времени)
+        let change = (r - 0.5) * 0.015;
         let trend = Math.sin(seed * 0.3) * 0.005;
         change += trend;
         let newPrice = oldPrice * (1 + change);
@@ -2859,7 +2886,6 @@ function renderAssetsList() {
         const profitPercent = shares > 0 && buyPrice > 0 ? ((currentPrices[asset.id] / buyPrice - 1) * 100).toFixed(2) : 0;
         const profitClass = profit > 0 ? 'profit-positive' : (profit < 0 ? 'profit-negative' : '');
         
-        // Определяем стрелку: смотрим историю цен (последние 2 значения)
         let trendArrow = '';
         let trendClass = '';
         if (priceHistory[asset.id] && priceHistory[asset.id].length >= 2) {
@@ -2906,21 +2932,25 @@ function renderAssetsList() {
     }).join('');
 
     document.querySelectorAll('.buy-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const id = btn.dataset.id;
-            const input = document.getElementById(`amount_${id}`);
-            const amount = parseFloat(input.value);
-            if (!isNaN(amount) && amount >= 100 && amount <= investBalance) buyAsset(id, amount);
-            else if (amount > investBalance) alert('Недостаточно средств');
-            else alert('Введите сумму от 100 ₽');
-        });
+        btn.removeEventListener('click', buyHandler);
+        btn.addEventListener('click', buyHandler);
     });
     document.querySelectorAll('.sell-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const id = btn.dataset.id;
-            if (userInvestments[id]) sellAsset(id);
-        });
+        btn.removeEventListener('click', sellHandler);
+        btn.addEventListener('click', sellHandler);
     });
+    function buyHandler(e) {
+        const id = e.currentTarget.dataset.id;
+        const input = document.getElementById(`amount_${id}`);
+        const amount = parseFloat(input.value);
+        if (!isNaN(amount) && amount >= 100 && amount <= investBalance) buyAsset(id, amount);
+        else if (amount > investBalance) alert('Недостаточно средств');
+        else alert('Введите сумму от 100 ₽');
+    }
+    function sellHandler(e) {
+        const id = e.currentTarget.dataset.id;
+        if (userInvestments[id]) sellAsset(id);
+    }
 }
 
 function buyAsset(assetId, rubAmount) {
@@ -2995,33 +3025,21 @@ function loadGameState() {
     }
 }
 
-function initBlur() {
-    const overlay = document.getElementById('investBlurOverlay');
-    const showBtn = document.getElementById('showLotsBtn');
-    if (overlay && showBtn) {
-        showBtn.addEventListener('click', () => { overlay.style.display = 'none'; localStorage.setItem('investBlurShown', 'true'); });
-        if (localStorage.getItem('investBlurShown') === 'true') overlay.style.display = 'none';
-        else overlay.style.display = 'flex';
-    }
-}
-
 async function refreshPricesAndUpdate() {
-    const btn = document.getElementById('refreshInvestPrices');
-    if (btn) btn.disabled = true;
     updatePrices();
-    if (btn) btn.disabled = false;
 }
 
 function initInvestorGame() {
     loadGameState();
-    initBlur();
-    // Генерируем начальные цены и историю
+    // Генерируем начальные цены и историю (20 точек)
     for (let i = 0; i < 20; i++) {
-        updatePrices(); // заполнит историю 20 точками
+        updatePrices();
     }
     updateBalanceDisplay();
     if (priceRefreshInterval) clearInterval(priceRefreshInterval);
     priceRefreshInterval = setInterval(() => { refreshPricesAndUpdate(); }, 5000);
+    // Принудительная отрисовка после инициализации
+    renderAssetsList();
 }
 
 function showEconomicsModal() {
@@ -3029,8 +3047,8 @@ function showEconomicsModal() {
     modal.className = 'modal-learn';
     modal.innerHTML = `
         <div class="modal-learn-card">
-            <div class="learn-title">📚 Основы экономики</div>
-            <div class="learn-text">Акция – это ценная бумага, дающая право на долю в компании. Цена акции зависит от спроса и предложения, новостей, отчётов.</div>
+            <div class="learn-title">📘 Руководство инвестора</div>
+            <div class="learn-text">Акция – ценная бумага, дающая право на долю в компании. Цена акции зависит от спроса и предложения, новостей, отчётов.</div>
             <div class="learn-text">📈 Как играть: Покупайте дёшево, продавайте дорого. Анализируйте графики: если цена идёт вверх – тренд восходящий; если вниз – нисходящий. Диверсифицируйте портфель, не вкладывайте всё в одну акцию.</div>
             <div class="learn-text">💰 Зарабатывайте на разнице цен. Помните: рынок непредсказуем, но технический анализ помогает.</div>
             <button id="closeLearnModal" class="calc-btn">Понятно</button>
@@ -3040,12 +3058,10 @@ function showEconomicsModal() {
     modal.querySelector('#closeLearnModal').addEventListener('click', () => modal.remove());
 }
 
-// Привязка кнопок (будет вызвано в DOMContentLoaded)
+// Убедимся, что кнопка руководства работает
 document.addEventListener('DOMContentLoaded', () => {
     const learnBtn = document.getElementById('btnLearnEconomics');
     if (learnBtn) learnBtn.addEventListener('click', showEconomicsModal);
-    const refreshBtn = document.getElementById('refreshInvestPrices');
-    if (refreshBtn) refreshBtn.addEventListener('click', refreshPricesAndUpdate);
 });
 
 window.addEventListener('beforeunload', () => {
