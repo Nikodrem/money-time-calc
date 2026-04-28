@@ -1017,6 +1017,14 @@ body.dark .invest-asset-card { background: #334155; }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
         
+    /* Доп. стили для кнопки переключения режима графика */
+#toggleChartMode {
+    transition: transform 0.1s;
+}
+#toggleChartMode:active {
+    transform: scale(0.96);
+}
+        
     </style>
 
     <!-- Вкладка 1: События -->
@@ -1051,11 +1059,14 @@ body.dark .invest-asset-card { background: #334155; }
     <div class="life-box" style="padding: 16px;">
         <div class="invest-header">
             <div class="invest-title">🎮 Инвестиционный симулятор</div>
-            <button id="btnLearnEconomics" class="btn-guide">📘 Руководство</button>
+            <div style="display: flex; gap: 8px;">
+                <button id="btnLearnEconomics" class="btn-guide">📘 Руководство</button>
+                <button id="toggleChartMode" class="btn-guide" style="background:#475569;">📊 График / 🕯️ Свечи</button>
+            </div>
         </div>
         <div style="background: #eef2f6; border-radius: 60px; padding: 12px 20px; margin-bottom: 16px; text-align: center;">
             <div>💰 Ваш капитал</div>
-            <div style="font-size: 28px; font-weight: 700;" id="investBalance">100000 ₽</div>
+            <div style="font-size: 28px; font-weight: 700;" id="investBalance">5000 ₽</div>
             <div id="investTotalProfit" style="font-size: 12px;"></div>
         </div>
         <div class="filter-bar">
@@ -1069,12 +1080,11 @@ body.dark .invest-asset-card { background: #334155; }
             <div id="investAssetsContainer">
                 <div id="investAssetsList" style="max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;"></div>
             </div>
-            <div style="font-size: 11px; text-align: center; margin-top: 10px;">Цены обновляются каждые 5 секунд. Новости влияют на рынок.</div>
+            <div style="font-size: 11px; text-align: center; margin-top: 10px;">Цены обновляются каждые 5 сек. Новости влияют на рынок.</div>
         </div>
-        <div class="pseudo-science-note">⚠️ Игра не является инвестиционной рекомендацией. Дивиденды начисляются раз в 2 минуты. Налог 13% на прибыль, комиссия 0.05%.</div>
+        <div class="pseudo-science-note">⚠️ Игра не является инвестиционной рекомендацией. Налог 13%, комиссия 0.05%, дивиденды раз в 2 мин.</div>
     </div>
 </div>
-
     <!-- Вкладка 4: Обратный отсчёт -->
     <div id="lifeCountdownContent" class="local-content">
         <div class="input-group"><label>Название события</label><input type="text" id="countdownName" placeholder="День свадьбы"></div>
@@ -2760,25 +2770,26 @@ body.dark .invest-asset-card { background: #334155; }
         }
     }
     
-   // ---------- ИГРА ИНВЕСТОР (полная версия: новости, дивиденды, свечи, рейтинг, налоги) ----------
-let investBalance = 100000;
+   // ---------- ИГРА ИНВЕСТОР (исправленная версия) ----------
+let investBalance = 5000;          // ▲ стартовый капитал уменьшен
 let userInvestments = {};
 let currentPrices = {};
-let priceHistory = {};      // храним массив цен для каждого актива (для графика)
-let candlestickData = {};   // для свечей: { open, high, low, close, time }
+let priceHistory = {};
+let candlestickData = {};
 let lastUpdateTimestamp = Date.now();
 let newsInterval = null;
 let dividendInterval = null;
 let priceRefreshInterval = null;
 let currentFilter = 'default';
-let leaderboard = [];       // [{ name, profitPercent, date }]
-let totalInvestedRub = 0;   // для расчёта налога
+let randomOrder = null;            // для фиксации случайного порядка
+let chartMode = 'candles';         // 'candles' или 'line'
+let focusedInputId = null;         // для восстановления фокуса
 
-// Расширенный список компаний (20 штук)
+// 20 компаний (список остаётся без изменений)
 const assets = [
     { id: 'aapl', displayName: 'Яблочный ПК', ticker: 'AAPL', emoji: '🍎', sector: 'Технологии', basePrice: 3800, dividendYield: 0.005 },
     { id: 'msft', displayName: 'МягкийСофт', ticker: 'MSFT', emoji: '💻', sector: 'Технологии', basePrice: 4100, dividendYield: 0.007 },
-    { id: 'googl', displayName: 'ГуглПлюс', ticker: 'GOOGL', emoji: '🔍', sector: 'Интернет', basePrice: 4900, dividendYield: 0.0 },
+    { id: 'googl', displayName: 'ГуглПлюс', ticker: 'GOOGL', emoji: '🔍', sector: 'Інтернет', basePrice: 4900, dividendYield: 0.0 },
     { id: 'amzn', displayName: 'АмазонкаЛогистик', ticker: 'AMZN', emoji: '📦', sector: 'Торговля', basePrice: 5200, dividendYield: 0.0 },
     { id: 'tsla', displayName: 'Тэсла Моторс', ticker: 'TSLA', emoji: '⚡', sector: 'Авто', basePrice: 6200, dividendYield: 0.0 },
     { id: 'gld', displayName: 'ЗолотойЗапас', ticker: 'GLD', emoji: '🥇', sector: 'Металлы', basePrice: 2100, dividendYield: 0.002 },
@@ -2786,20 +2797,20 @@ const assets = [
     { id: 'sber', displayName: 'Сберегательный Банк', ticker: 'SBER', emoji: '🏦', sector: 'Банки', basePrice: 280, dividendYield: 0.08 },
     { id: 'gazp', displayName: 'Газовый Гигант', ticker: 'GAZP', emoji: '🔥', sector: 'Энергия', basePrice: 195, dividendYield: 0.12 },
     { id: 'lukoil', displayName: 'Нефтяной Гигант', ticker: 'LKOH', emoji: '⛽', sector: 'Энергия', basePrice: 680, dividendYield: 0.10 },
-    { id: 'yandex', displayName: 'Яндекс.Поиск', ticker: 'YNDX', emoji: '🔎', sector: 'Интернет', basePrice: 310, dividendYield: 0.0 },
+    { id: 'yandex', displayName: 'Яндекс.Поиск', ticker: 'YNDX', emoji: '🔎', sector: 'Інтернет', basePrice: 310, dividendYield: 0.0 },
     { id: 'rosneft', displayName: 'Роснефтегаз', ticker: 'ROSN', emoji: '🛢️', sector: 'Энергия', basePrice: 420, dividendYield: 0.09 },
     { id: 'magnit', displayName: 'Магнитная Розница', ticker: 'MGNT', emoji: '🛒', sector: 'Торговля', basePrice: 195, dividendYield: 0.06 },
     { id: 'tcsg', displayName: 'Тинькофф Групп', ticker: 'TCSG', emoji: '💳', sector: 'Финансы', basePrice: 470, dividendYield: 0.0 },
     { id: 'moex', displayName: 'МосБиржа', ticker: 'MOEX', emoji: '🏛️', sector: 'Финансы', basePrice: 130, dividendYield: 0.09 },
     { id: 'nvda', displayName: 'НВидиа Граф', ticker: 'NVDA', emoji: '🎮', sector: 'Технологии', basePrice: 8900, dividendYield: 0.001 },
-    { id: 'meta', displayName: 'МетаВселенная', ticker: 'META', emoji: '🌐', sector: 'Интернет', basePrice: 5200, dividendYield: 0.0 },
+    { id: 'meta', displayName: 'МетаВселенная', ticker: 'META', emoji: '🌐', sector: 'Інтернет', basePrice: 5200, dividendYield: 0.0 },
     { id: 'nflx', displayName: 'Нетфликс Кино', ticker: 'NFLX', emoji: '🎬', sector: 'Развлечения', basePrice: 4500, dividendYield: 0.0 },
     { id: 'intc', displayName: 'Интел Чип', ticker: 'INTC', emoji: '💾', sector: 'Технологии', basePrice: 370, dividendYield: 0.025 },
     { id: 'amd', displayName: 'Эймди Райзен', ticker: 'AMD', emoji: '⚙️', sector: 'Технологии', basePrice: 1100, dividendYield: 0.0 }
 ];
 
-// -------------------- НОВОСТИ И ИХ ВЛИЯНИЕ --------------------
-const newsEvents = [
+// -------------------- НОВОСТИ --------------------
+const newsEvents = [ /* список без изменений */ 
     { text: "🏦 Центробанк повысил ключевую ставку", effect: { sector: "all", change: -0.03, duration: 60 }, type: "negative" },
     { text: "🏭 Нефть Brent подорожала на 5%", effect: { sector: "Энергия", change: 0.04, duration: 45 }, type: "positive" },
     { text: "📉 Падение фондового рынка из-за геополитики", effect: { sector: "all", change: -0.02, duration: 30 }, type: "negative" },
@@ -2821,10 +2832,9 @@ const newsEvents = [
     { text: "💻 Яндекс создаёт конкурента ChatGPT", effect: { ids: ["yandex"], change: 0.045, duration: 50 }, type: "positive" },
     { text: "⛽ Лукойл запускает сеть АЗС в Европе", effect: { ids: ["lukoil"], change: 0.03, duration: 45 }, type: "positive" }
 ];
-
 let activeNewsEffects = [];
 
-function showNewsToast(text, type) {
+function showNewsToast(text, type) { /* без изменений */ 
     const toast = document.createElement('div');
     toast.className = `news-toast ${type}`;
     toast.innerHTML = `<span>${type === 'positive' ? '📢' : '⚠️'}</span> ${text}`;
@@ -2835,21 +2845,22 @@ function showNewsToast(text, type) {
 function applyNewsEffect(news) {
     activeNewsEffects.push({ effect: news.effect, expires: Date.now() + news.effect.duration * 1000 });
     showNewsToast(news.text, news.type);
-    // Немедленное изменение цен
     updatePricesWithEffects();
+}
+
+function seededRandom(seed) {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
 }
 
 function updatePricesWithEffects() {
     const now = Date.now();
-    // Удаляем истёкшие эффекты
     activeNewsEffects = activeNewsEffects.filter(e => e.expires > now);
     for (let asset of assets) {
         let oldPrice = currentPrices[asset.id] || asset.basePrice;
         let change = 0;
-        // Базовое случайное блуждание
-        let r = seededRandom(Date.now() / 5000 + asset.id.charCodeAt(0));
+        let r = seededRandom(now / 5000 + asset.id.charCodeAt(0));
         change += (r - 0.5) * 0.015;
-        // Применяем активные эффекты
         for (let eff of activeNewsEffects) {
             const e = eff.effect;
             if (e.sector === 'all' || e.sector === asset.sector || (e.ids && e.ids.includes(asset.id))) {
@@ -2864,17 +2875,18 @@ function updatePricesWithEffects() {
         }
         currentPrices[asset.id] = newPrice;
     }
-    renderAssetsList(); // обновляем отображение цен
+    renderAssetsList(true);  // перерисовка без сброса фокуса
     updateTotalProfit();
 }
 
-// Генерация псевдослучайного числа
-function seededRandom(seed) {
-    const x = Math.sin(seed) * 10000;
-    return x - Math.floor(x);
+// -------------------- ИСТОРИЯ ЦЕН И СВЕЧИ --------------------
+function updatePriceHistory(assetId, newPrice) {
+    if (!priceHistory[assetId]) priceHistory[assetId] = [];
+    priceHistory[assetId].push(newPrice);
+    if (priceHistory[assetId].length > 30) priceHistory[assetId].shift();
+    updateCandlestick(assetId, newPrice);
 }
 
-// -------------------- СВЕЧНОЙ ГРАФИК (OHLC) --------------------
 function updateCandlestick(assetId, newPrice) {
     if (!candlestickData[assetId]) {
         candlestickData[assetId] = {
@@ -2888,9 +2900,8 @@ function updateCandlestick(assetId, newPrice) {
     }
     const data = candlestickData[assetId];
     const now = Date.now();
-    const interval = 5000; // 5 секунд на свечу
+    const interval = 5000;
     if (now - data.lastTime >= interval) {
-        // Закрываем текущую свечу
         data.currentClose = newPrice;
         data.candles.push({
             open: data.currentOpen,
@@ -2899,8 +2910,8 @@ function updateCandlestick(assetId, newPrice) {
             close: data.currentClose,
             time: data.lastTime
         });
-        if (data.candles.length > 30) data.candles.shift();
-        // Начинаем новую свечу
+        // Оставляем только последние 20 свечей
+        if (data.candles.length > 20) data.candles.shift();
         data.currentOpen = newPrice;
         data.currentHigh = newPrice;
         data.currentLow = newPrice;
@@ -2913,17 +2924,26 @@ function updateCandlestick(assetId, newPrice) {
     }
 }
 
-// Рисование свечного графика с индикатором SMA (простая скользящая средняя за 5 свечей)
-function drawCandlestickChart(canvasId, assetId) {
+// -------------------- ОТРИСОВКА ГРАФИКОВ (линия или свечи) --------------------
+function drawChart(canvasId, assetId) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
+    const data = candlestickData[assetId];
+    if (!data || data.candles.length === 0) return;
+    const candles = data.candles;
+    if (chartMode === 'candles') {
+        drawCandlestickChart(canvas, candles);
+    } else {
+        drawLineChart(canvas, candles);
+    }
+}
+
+function drawCandlestickChart(canvas, candles) {
     const ctx = canvas.getContext('2d');
     const w = canvas.clientWidth, h = canvas.clientHeight;
     canvas.width = w; canvas.height = h;
     ctx.clearRect(0, 0, w, h);
-    const data = candlestickData[assetId];
-    if (!data || data.candles.length === 0) return;
-    const candles = data.candles;
+    if (candles.length === 0) return;
     const candleWidth = (w - 40) / candles.length;
     const minPrice = Math.min(...candles.map(c => c.low));
     const maxPrice = Math.max(...candles.map(c => c.high));
@@ -2931,7 +2951,6 @@ function drawCandlestickChart(canvasId, assetId) {
     const yScale = (h - 40) / range;
     const offsetX = 20;
     const offsetY = 20;
-    // Рисуем свечи
     for (let i = 0; i < candles.length; i++) {
         const c = candles[i];
         const x = offsetX + i * candleWidth;
@@ -2944,7 +2963,7 @@ function drawCandlestickChart(canvasId, assetId) {
         ctx.fillStyle = '#94a3b8';
         ctx.fillRect(x + candleWidth * 0.45, highY, 2, lowY - highY);
     }
-    // Рисуем SMA (5 периодов)
+    // SMA 5
     if (candles.length >= 5) {
         ctx.beginPath();
         ctx.strokeStyle = '#f59e0b';
@@ -2952,7 +2971,7 @@ function drawCandlestickChart(canvasId, assetId) {
         let first = true;
         for (let i = 4; i < candles.length; i++) {
             let sum = 0;
-            for (let j = i - 4; j <= i; j++) sum += candles[j].close;
+            for (let j = i-4; j <= i; j++) sum += candles[j].close;
             const sma = sum / 5;
             const x = offsetX + i * candleWidth + candleWidth/2;
             const y = offsetY + (maxPrice - sma) * yScale;
@@ -2963,137 +2982,79 @@ function drawCandlestickChart(canvasId, assetId) {
     }
 }
 
-// -------------------- ДИВИДЕНДЫ --------------------
-function payDividends() {
-    let totalDividends = 0;
-    for (let [id, inv] of Object.entries(userInvestments)) {
-        const asset = assets.find(a => a.id === id);
-        if (asset && asset.dividendYield > 0) {
-            const dividendAmount = inv.shares * currentPrices[id] * (asset.dividendYield / (12 * 24 * 60)); // за 2 минуты примерно
-            if (dividendAmount > 0.01) {
-                investBalance += dividendAmount;
-                totalDividends += dividendAmount;
+function drawLineChart(canvas, candles) {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = w; canvas.height = h;
+    ctx.clearRect(0, 0, w, h);
+    if (candles.length < 2) return;
+    const prices = candles.map(c => c.close);
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    const range = max - min || 1;
+    const step = (w - 40) / (prices.length - 1);
+    const offsetX = 20;
+    const offsetY = 20;
+    const yScale = (h - 40) / range;
+    ctx.beginPath();
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < prices.length; i++) {
+        const x = offsetX + i * step;
+        const y = offsetY + (max - prices[i]) * yScale;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    // заливка под линией
+    ctx.lineTo(offsetX + (prices.length-1)*step, h - offsetY);
+    ctx.lineTo(offsetX, h - offsetY);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(59,130,246,0.1)';
+    ctx.fill();
+}
+
+// -------------------- ФИЛЬТРАЦИЯ (случайный порядок фиксируется) --------------------
+function getSortedAssets() {
+    if (currentFilter === 'random') {
+        if (!randomOrder) {
+            randomOrder = [...assets];
+            for (let i = randomOrder.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [randomOrder[i], randomOrder[j]] = [randomOrder[j], randomOrder[i]];
             }
         }
+        return randomOrder;
     }
-    if (totalDividends > 0) {
-        showNewsToast(`💰 Получены дивиденды: ${totalDividends.toFixed(2)} ₽`, 'positive');
-        updateBalanceDisplay();
-        saveGameState();
-    }
-}
-
-// -------------------- НАЛОГИ И КОМИССИЯ --------------------
-function applyTaxAndFee(profit) {
-    if (profit <= 0) return profit;
-    const tax = profit * 0.13;
-    const fee = profit * 0.0005;
-    const net = profit - tax - fee;
-    if (tax + fee > 0) {
-        showNewsToast(`🧾 Налог 13%: ${tax.toFixed(2)} ₽, комиссия: ${fee.toFixed(2)} ₽`, 'negative');
-    }
-    return net;
-}
-
-function sellAsset(assetId) {
-    const inv = userInvestments[assetId];
-    if (!inv) return;
-    const currentPrice = currentPrices[assetId];
-    if (!currentPrice) { alert('Цена не загружена'); return; }
-    const revenue = inv.shares * currentPrice;
-    const profit = revenue - inv.shares * inv.buyPrice;
-    const netProfit = applyTaxAndFee(profit);
-    investBalance += inv.shares * inv.buyPrice + netProfit;
-    delete userInvestments[assetId];
-    updateBalanceDisplay();
-    saveGameState();
-    renderAssetsList();
-}
-
-function buyAsset(assetId, rubAmount) {
-    const price = currentPrices[assetId];
-    if (!price) { alert('Цена не загружена'); return; }
-    const shares = rubAmount / price;
-    if (shares <= 0) return;
-    if (rubAmount > investBalance) { alert('Недостаточно средств'); return; }
-    if (userInvestments[assetId]) {
-        const old = userInvestments[assetId];
-        const totalShares = old.shares + shares;
-        const totalCost = old.shares * old.buyPrice + rubAmount;
-        userInvestments[assetId] = { shares: totalShares, buyPrice: totalCost / totalShares, lastUpdate: Date.now() };
-    } else {
-        userInvestments[assetId] = { shares, buyPrice: price, lastUpdate: Date.now() };
-    }
-    investBalance -= rubAmount;
-    updateBalanceDisplay();
-    saveGameState();
-    renderAssetsList();
-}
-
-// -------------------- СОРЕВНОВАТЕЛЬНЫЙ РЕЙТИНГ (ежедневный) --------------------
-function updateLeaderboard() {
-    const today = new Date().toDateString();
-    let stored = localStorage.getItem('investorLeaderboard');
-    if (stored) {
-        leaderboard = JSON.parse(stored);
-        // если сегодняшняя дата не совпадает – сбросить
-        if (leaderboard.date !== today) {
-            leaderboard = { date: today, entries: [] };
-        }
-    } else {
-        leaderboard = { date: today, entries: [] };
-    }
-    // Получаем имя игрока из змейки или аноним
-    let playerName = snakeCurrentPlayer || localStorage.getItem('snakeCurrentPlayer') || 'Аноним';
-    // Вычисляем дневную доходность: (текущий капитал - начальный) / начальный
-    const startCapital = parseFloat(localStorage.getItem('investorStartCapital')) || 100000;
-    const currentCapital = investBalance + Object.values(userInvestments).reduce((sum, inv) => sum + inv.shares * currentPrices[inv.id], 0);
-    const profitPercent = ((currentCapital - startCapital) / startCapital) * 100;
-    // Обновляем запись игрока
-    const existing = leaderboard.entries.find(e => e.name === playerName);
-    if (existing) existing.profitPercent = profitPercent;
-    else leaderboard.entries.push({ name: playerName, profitPercent });
-    leaderboard.entries.sort((a,b) => b.profitPercent - a.profitPercent);
-    leaderboard.entries = leaderboard.entries.slice(0, 10);
-    localStorage.setItem('investorLeaderboard', JSON.stringify(leaderboard));
-    // Показываем рейтинг в консоли или можно добавить отдельный блок на страницу
-    console.log('📊 Ежедневный рейтинг:', leaderboard.entries);
-}
-
-// -------------------- ФИЛЬТРАЦИЯ И СОРТИРОВКА --------------------
-function applyFilter() {
-    let sortedAssets = [...assets];
+    // для других фильтров порядок вычисляется заново каждый раз
+    let sorted = [...assets];
     if (currentFilter === 'profit') {
-        sortedAssets.sort((a,b) => {
+        sorted.sort((a,b) => {
             const profitA = (currentPrices[a.id] - a.basePrice) / a.basePrice;
             const profitB = (currentPrices[b.id] - b.basePrice) / b.basePrice;
             return profitB - profitA;
         });
     } else if (currentFilter === 'price') {
-        sortedAssets.sort((a,b) => (currentPrices[b.id] || 0) - (currentPrices[a.id] || 0));
-    } else if (currentFilter === 'random') {
-        for (let i = sortedAssets.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [sortedAssets[i], sortedAssets[j]] = [sortedAssets[j], sortedAssets[i]];
-        }
-    } else {
-        // default – порядок изначальный
+        sorted.sort((a,b) => (currentPrices[b.id] || 0) - (currentPrices[a.id] || 0));
     }
-    return sortedAssets;
+    return sorted;
 }
 
-// -------------------- ОТРИСОВКА СПИСКА АКЦИЙ (без сброса полей ввода) --------------------
-let assetElements = {}; // для сохранения значений полей
+// -------------------- ОТРИСОВКА СПИСКА (с сохранением фокуса) --------------------
+let assetElements = {};
 
-function renderAssetsList() {
+function renderAssetsList(keepFocus = false) {
     const container = document.getElementById('investAssetsList');
     if (!container) return;
-    const sorted = applyFilter();
-    // Сохраняем текущие значения полей ввода перед перерисовкой
+    // Сохраняем значения полей и запоминаем, какой input был в фокусе
+    if (keepFocus && document.activeElement && document.activeElement.id && document.activeElement.id.startsWith('amount_')) {
+        focusedInputId = document.activeElement.id;
+    }
     for (let asset of assets) {
         const input = document.getElementById(`amount_${asset.id}`);
         if (input) assetElements[asset.id] = input.value;
     }
+    const sorted = getSortedAssets();
     container.innerHTML = sorted.map(asset => {
         const price = currentPrices[asset.id] ? currentPrices[asset.id].toFixed(2) : '...';
         const investment = userInvestments[asset.id];
@@ -3102,8 +3063,6 @@ function renderAssetsList() {
         const profit = shares > 0 ? (shares * (currentPrices[asset.id] || 0) - shares * buyPrice).toFixed(2) : 0;
         const profitPercent = shares > 0 && buyPrice > 0 ? ((currentPrices[asset.id] / buyPrice - 1) * 100).toFixed(2) : 0;
         const profitClass = profit > 0 ? 'profit-positive' : (profit < 0 ? 'profit-negative' : '');
-        
-        // определяем тренд за последние 2 цены
         let trendArrow = '';
         let trendClass = '';
         if (priceHistory[asset.id] && priceHistory[asset.id].length >= 2) {
@@ -3113,9 +3072,8 @@ function renderAssetsList() {
             else if (newP < old) { trendArrow = '📉'; trendClass = 'profit-negative'; }
             else trendArrow = '➖';
         } else trendArrow = '🔄';
-        
-        const graphId = `candle_${asset.id}`;
-        setTimeout(() => { if (candlestickData[asset.id]) drawCandlestickChart(graphId, asset.id); }, 20);
+        const graphId = `chart_${asset.id}`;
+        setTimeout(() => drawChart(graphId, asset.id), 10);
         return `
             <div class="invest-asset-card" data-id="${asset.id}">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
@@ -3147,7 +3105,18 @@ function renderAssetsList() {
         `;
     }).join('');
     
-    // Перепривязываем обработчики
+    // Восстанавливаем значения полей и фокус
+    for (let asset of assets) {
+        const input = document.getElementById(`amount_${asset.id}`);
+        if (input && assetElements[asset.id] !== undefined) input.value = assetElements[asset.id];
+    }
+    if (keepFocus && focusedInputId) {
+        const focusedInput = document.getElementById(focusedInputId);
+        if (focusedInput) focusedInput.focus();
+        focusedInputId = null;
+    }
+    
+    // Обработчики кнопок
     document.querySelectorAll('.buy-btn').forEach(btn => {
         btn.removeEventListener('click', buyHandler);
         btn.addEventListener('click', buyHandler);
@@ -3163,7 +3132,8 @@ function renderAssetsList() {
         if (!isNaN(amount) && amount >= 100 && amount <= investBalance) buyAsset(id, amount);
         else if (amount > investBalance) alert('Недостаточно средств');
         else alert('Введите сумму от 100 ₽');
-        input.value = ''; // очищаем после покупки
+        input.value = '';
+        assetElements[id] = '';
     }
     function sellHandler(e) {
         const id = e.currentTarget.dataset.id;
@@ -3171,22 +3141,103 @@ function renderAssetsList() {
     }
 }
 
-// -------------------- ИНИЦИАЛИЗАЦИЯ ЦЕН И ИСТОРИИ --------------------
-function initHistoryAndPrices() {
-    // Заполняем историю цен и свечные данные
-    for (let i = 0; i < 30; i++) {
-        updatePricesWithEffects(); // генерирует цены и свечи
+// -------------------- ПОКУПКА / ПРОДАЖА (с налогом) --------------------
+function buyAsset(assetId, rubAmount) {
+    const price = currentPrices[assetId];
+    if (!price) { alert('Цена не загружена'); return; }
+    const shares = rubAmount / price;
+    if (shares <= 0) return;
+    if (rubAmount > investBalance) { alert('Недостаточно средств'); return; }
+    if (userInvestments[assetId]) {
+        const old = userInvestments[assetId];
+        const totalShares = old.shares + shares;
+        const totalCost = old.shares * old.buyPrice + rubAmount;
+        userInvestments[assetId] = { shares: totalShares, buyPrice: totalCost / totalShares, lastUpdate: Date.now() };
+    } else {
+        userInvestments[assetId] = { shares, buyPrice: price, lastUpdate: Date.now() };
+    }
+    investBalance -= rubAmount;
+    updateBalanceDisplay();
+    saveGameState();
+    renderAssetsList(true);
+}
+
+function sellAsset(assetId) {
+    const inv = userInvestments[assetId];
+    if (!inv) return;
+    const currentPrice = currentPrices[assetId];
+    if (!currentPrice) { alert('Цена не загружена'); return; }
+    const revenue = inv.shares * currentPrice;
+    const profit = revenue - inv.shares * inv.buyPrice;
+    let netProfit = profit;
+    if (profit > 0) {
+        const tax = profit * 0.13;
+        const fee = profit * 0.0005;
+        netProfit = profit - tax - fee;
+        showNewsToast(`🧾 Налог 13%: ${tax.toFixed(2)} ₽, комиссия: ${fee.toFixed(2)} ₽`, 'negative');
+    }
+    investBalance += inv.shares * inv.buyPrice + netProfit;
+    delete userInvestments[assetId];
+    updateBalanceDisplay();
+    saveGameState();
+    renderAssetsList(true);
+}
+
+// -------------------- ДИВИДЕНДЫ И РЕЙТИНГ --------------------
+function payDividends() {
+    let totalDividends = 0;
+    for (let [id, inv] of Object.entries(userInvestments)) {
+        const asset = assets.find(a => a.id === id);
+        if (asset && asset.dividendYield > 0) {
+            const dividendAmount = inv.shares * currentPrices[id] * (asset.dividendYield / (12 * 24 * 60));
+            if (dividendAmount > 0.01) {
+                investBalance += dividendAmount;
+                totalDividends += dividendAmount;
+            }
+        }
+    }
+    if (totalDividends > 0) {
+        showNewsToast(`💰 Получены дивиденды: ${totalDividends.toFixed(2)} ₽`, 'positive');
+        updateBalanceDisplay();
+        saveGameState();
     }
 }
 
-function updatePriceHistory(assetId, newPrice) {
-    if (!priceHistory[assetId]) priceHistory[assetId] = [];
-    priceHistory[assetId].push(newPrice);
-    if (priceHistory[assetId].length > 30) priceHistory[assetId].shift();
-    updateCandlestick(assetId, newPrice);
+function updateLeaderboard() {
+    const today = new Date().toDateString();
+    let leaderboard = localStorage.getItem('investorLeaderboard') ? JSON.parse(localStorage.getItem('investorLeaderboard')) : { date: today, entries: [] };
+    if (leaderboard.date !== today) leaderboard = { date: today, entries: [] };
+    let playerName = (typeof snakeCurrentPlayer !== 'undefined' && snakeCurrentPlayer) || localStorage.getItem('snakeCurrentPlayer') || 'Аноним';
+    const startCapital = parseFloat(localStorage.getItem('investorStartCapital')) || 5000;
+    const currentCapital = investBalance + Object.values(userInvestments).reduce((sum, inv) => sum + inv.shares * currentPrices[inv.id], 0);
+    const profitPercent = ((currentCapital - startCapital) / startCapital) * 100;
+    const existing = leaderboard.entries.find(e => e.name === playerName);
+    if (existing) existing.profitPercent = profitPercent;
+    else leaderboard.entries.push({ name: playerName, profitPercent });
+    leaderboard.entries.sort((a,b) => b.profitPercent - a.profitPercent);
+    leaderboard.entries = leaderboard.entries.slice(0, 10);
+    localStorage.setItem('investorLeaderboard', JSON.stringify(leaderboard));
+    console.log('📊 Ежедневный рейтинг:', leaderboard.entries);
 }
 
-// -------------------- ОСНОВНЫЕ ФУНКЦИИ --------------------
+// -------------------- ИНИЦИАЛИЗАЦИЯ (20 свечей сразу, начальный капитал 5000) --------------------
+function initHistoryAndPrices() {
+    for (let i = 0; i < 20; i++) {
+        updatePricesWithEffects(); // генерирует 20 точек истории
+    }
+    // Принудительно обновим свечи, чтобы они были
+    for (let asset of assets) {
+        if (candlestickData[asset.id] && candlestickData[asset.id].candles.length < 20) {
+            // если вдруг меньше, добавим недостающие копированием последней цены
+            while (candlestickData[asset.id].candles.length < 20) {
+                const last = candlestickData[asset.id].candles[candlestickData[asset.id].candles.length-1];
+                if (last) candlestickData[asset.id].candles.push({...last, time: last.time+5000});
+                else break;
+            }
+        }
+    }
+}
+
 function updateBalanceDisplay() {
     const balanceDiv = document.getElementById('investBalance');
     if (balanceDiv) balanceDiv.innerText = `${investBalance.toFixed(0)} ₽`;
@@ -3216,7 +3267,7 @@ function saveGameState() {
         balance: investBalance,
         investments: userInvestments,
         lastSaveTime: Date.now(),
-        startCapital: localStorage.getItem('investorStartCapital') || 100000
+        startCapital: localStorage.getItem('investorStartCapital') || 5000
     }));
 }
 
@@ -3227,11 +3278,12 @@ function loadGameState() {
             const data = JSON.parse(saved);
             investBalance = data.balance;
             userInvestments = data.investments || {};
-            if (investBalance < 0) investBalance = 100000;
-            localStorage.setItem('investorStartCapital', data.startCapital || 100000);
+            if (investBalance < 0) investBalance = 5000;
+            localStorage.setItem('investorStartCapital', data.startCapital || 5000);
         } catch(e) { }
     } else {
-        localStorage.setItem('investorStartCapital', '100000');
+        localStorage.setItem('investorStartCapital', '5000');
+        investBalance = 5000;
     }
 }
 
@@ -3239,50 +3291,44 @@ async function refreshPricesAndUpdate() {
     updatePricesWithEffects();
 }
 
-// -------------------- НОВОСТИ ПО ТАЙМЕРУ --------------------
 function scheduleNews() {
     if (newsInterval) clearInterval(newsInterval);
     newsInterval = setInterval(() => {
-        if (Math.random() < 0.7) { // 70% шанс появления новости
+        if (Math.random() < 0.7) {
             const randomNews = newsEvents[Math.floor(Math.random() * newsEvents.length)];
             applyNewsEffect(randomNews);
         }
-    }, 25000); // каждые 25 секунд
+    }, 25000);
 }
 
-// -------------------- ДИВИДЕНДЫ ПО ТАЙМЕРУ --------------------
 function scheduleDividends() {
     if (dividendInterval) clearInterval(dividendInterval);
-    dividendInterval = setInterval(() => {
-        payDividends();
-    }, 120000); // каждые 2 минуты
+    dividendInterval = setInterval(() => payDividends(), 120000);
 }
 
-// -------------------- ФИЛЬТРЫ --------------------
 function initFilters() {
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentFilter = btn.dataset.filter;
-            renderAssetsList();
+            if (currentFilter === 'random') randomOrder = null;  // сбросим, при следующем getSortedAssets() сгенерируется новый порядок
+            else randomOrder = null;
+            renderAssetsList(true);
         });
     });
 }
 
-// -------------------- ИНИЦИАЛИЗАЦИЯ МОДУЛЯ --------------------
-function initInvestorGame() {
-    loadGameState();
-    initHistoryAndPrices();
-    updateBalanceDisplay();
-    if (priceRefreshInterval) clearInterval(priceRefreshInterval);
-    priceRefreshInterval = setInterval(() => { refreshPricesAndUpdate(); }, 5000);
-    scheduleNews();
-    scheduleDividends();
-    initFilters();
-    renderAssetsList();
-    // Запускаем рейтинг при первом открытии
-    updateLeaderboard();
+function toggleChartMode() {
+    chartMode = chartMode === 'candles' ? 'line' : 'candles';
+    // перерисовываем все графики
+    for (let asset of assets) {
+        const canvasId = `chart_${asset.id}`;
+        drawChart(canvasId, asset.id);
+    }
+    // обновим текст кнопки (можно и не менять, но для удобства)
+    const btn = document.getElementById('toggleChartMode');
+    if (btn) btn.innerHTML = chartMode === 'candles' ? '📊 График / 🕯️ Свечи' : '🕯️ Свечи / 📊 График';
 }
 
 function showEconomicsModal() {
@@ -3292,10 +3338,10 @@ function showEconomicsModal() {
         <div class="modal-learn-card">
             <div class="learn-title">📘 Руководство инвестора</div>
             <div class="learn-text">• Акция – доля в компании. Цена меняется от новостей и спроса.</div>
-            <div class="learn-text">• 📈 Как играть: покупайте дёшево, продавайте дорого. Анализируйте свечные графики и тренды.</div>
+            <div class="learn-text">• 📈 Как играть: покупайте дёшево, продавайте дорого. Анализируйте свечи и тренды.</div>
             <div class="learn-text">• 🧾 Налог на прибыль 13% и комиссия брокера 0.05%.</div>
-            <div class="learn-text">• 💰 Дивиденды начисляются каждые 2 минуты (зависит от компании).</div>
-            <div class="learn-text">• 🏆 Ежедневный рейтинг по доходности (обновляется в консоли, в будущем добавим таблицу).</div>
+            <div class="learn-text">• 💰 Дивиденды начисляются каждые 2 минуты.</div>
+            <div class="learn-text">• 🏆 Ежедневный рейтинг по доходности (смотрите в консоли).</div>
             <button id="closeLearnModal" class="calc-btn">Понятно</button>
         </div>
     `;
@@ -3303,11 +3349,28 @@ function showEconomicsModal() {
     modal.querySelector('#closeLearnModal').addEventListener('click', () => modal.remove());
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initInvestorGame() {
+    loadGameState();
+    initHistoryAndPrices();
+    updateBalanceDisplay();
+    if (priceRefreshInterval) clearInterval(priceRefreshInterval);
+    priceRefreshInterval = setInterval(() => refreshPricesAndUpdate(), 5000);
+    scheduleNews();
+    scheduleDividends();
+    initFilters();
+    renderAssetsList(true);
+    // Кнопка переключения режима графиков
+    const toggleBtn = document.getElementById('toggleChartMode');
+    if (toggleBtn) toggleBtn.addEventListener('click', toggleChartMode);
+    // Кнопка руководства
     const learnBtn = document.getElementById('btnLearnEconomics');
     if (learnBtn) learnBtn.addEventListener('click', showEconomicsModal);
-});
+}
 
+// Стартуем игру, когда DOM загружен
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('investAssetsList')) initInvestorGame();
+});
 window.addEventListener('beforeunload', () => {
     if (priceRefreshInterval) clearInterval(priceRefreshInterval);
     if (newsInterval) clearInterval(newsInterval);
