@@ -1048,6 +1048,95 @@ body.dark .chart-mode-btn.active {
     background: #3b82f6;
 }
         
+    /* ========== ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ ИНВЕСТОРА ========== */
+/* Убираем лишние отступы */
+.life-box {
+    padding: 12px !important;
+}
+.invest-header {
+    margin-bottom: 12px;
+}
+.filter-bar {
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.category-bar {
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.category-btn {
+    background: #64748b;
+    border: none;
+    border-radius: 30px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: white;
+    cursor: pointer;
+    transition: 0.1s;
+}
+.category-btn.active {
+    background: #3b82f6;
+}
+.category-btn:active {
+    transform: scale(0.96);
+}
+body.dark .category-btn {
+    background: #475569;
+}
+body.dark .category-btn.active {
+    background: #3b82f6;
+}
+/* Прокрутка списка акций без мёртвых зон */
+#investAssetsList canvas {
+    pointer-events: none;  /* чтобы скролл работал через канвас */
+}
+/* Оформление новостной панели */
+#newsPanel {
+    background: #f1f5f9;
+    border-radius: 20px;
+}
+body.dark #newsPanel {
+    background: #1e293b;
+}
+#latestNewsList {
+    scrollbar-width: thin;
+}
+.news-item {
+    padding: 2px 4px;
+    border-bottom: 1px solid #cbd5e1;
+    white-space: nowrap;
+    overflow-x: auto;
+}
+body.dark .news-item {
+    border-bottom-color: #475569;
+}
+/* Вкладки Жизни – фикс высоты */
+#lifeLocalTabs .local-tab {
+    white-space: nowrap;
+    font-size: 14px;
+    padding: 6px 12px;
+}
+#lifeLocalTabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+/* Тёмная тема для обрамлений */
+body.dark .life-box {
+    background: #1e293b;
+    border-color: #334155;
+}
+body.dark #newsPanel {
+    background: #0f172a;
+}
+body.dark .filter-btn, body.dark .category-btn {
+    background: #334155;
+    color: #cbd5e1;
+}
+body.dark .filter-btn.active, body.dark .category-btn.active {
+    background: #3b82f6;
+    color: white;
+}
+        
     </style>
 
     <!-- Вкладка 1: События -->
@@ -1079,7 +1168,7 @@ body.dark .chart-mode-btn.active {
 
     <!-- Вкладка 3: Инвестор -->
 <div id="lifeZodiacContent" class="local-content">
-    <div class="life-box" style="padding: 16px;">
+    <div class="life-box" style="padding: 12px;">  <!-- Уменьшили padding с 16px до 12px -->
         <div class="invest-header">
             <div class="invest-title">🎮 Инвестиционный симулятор</div>
             <div style="display: flex; gap: 8px;">
@@ -1090,7 +1179,7 @@ body.dark .chart-mode-btn.active {
                 </div>
             </div>
         </div>
-        <div style="background: #eef2f6; border-radius: 60px; padding: 12px 20px; margin-bottom: 16px; text-align: center;">
+        <div style="background: #eef2f6; border-radius: 60px; padding: 8px 16px; margin-bottom: 12px; text-align: center;">
             <div>💰 Ваш капитал</div>
             <div style="font-size: 28px; font-weight: 700;" id="investBalance">5000 ₽</div>
             <div id="investTotalProfit" style="font-size: 12px;"></div>
@@ -1101,12 +1190,31 @@ body.dark .chart-mode-btn.active {
             <button class="filter-btn" data-filter="price">💰 По цене</button>
             <button class="filter-btn" data-filter="random">🎲 Случайно</button>
         </div>
+        <div class="filter-bar category-bar">
+            <button class="category-btn" data-category="all">Все</button>
+            <button class="category-btn" data-category="Технологии">💻 Технологии</button>
+            <button class="category-btn" data-category="Торговля">🛒 Торговля</button>
+            <button class="category-btn" data-category="Энергия">⚡ Энергия</button>
+            <button class="category-btn" data-category="Металлы">🥇 Металлы</button>
+            <button class="category-btn" data-category="Финансы">🏦 Финансы</button>
+            <button class="category-btn" data-category="Интернет">🌐 Интернет</button>
+            <button class="category-btn" data-category="Авто">🚗 Авто</button>
+            <button class="category-btn" data-category="Развлечения">🎬 Развлечения</button>
+            <button class="category-btn" data-category="Транспорт">✈️ Транспорт</button>
+            <button class="category-btn" data-category="Машиностроение">🚆 Машиностроение</button>
+            <button class="category-btn" data-category="Телеком">📱 Телеком</button>
+            <button class="category-btn" data-category="Банки">🏛️ Банки</button>
+        </div>
         <div style="background: #f8fafc; border-radius: 28px; padding: 12px;">
-            <div style="font-weight: 600; margin-bottom: 12px; text-align: center;">📈 Доступные акции</div>
+            <div style="font-weight: 600; margin-bottom: 8px; text-align: center;">📈 Доступные акции</div>
             <div id="investAssetsContainer">
-                <div id="investAssetsList" style="max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;"></div>
+                <div id="investAssetsList" style="max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;"></div>
             </div>
-            <div style="font-size: 11px; text-align: center; margin-top: 10px;">Цены обновляются каждые 5 сек. Новости влияют на рынок.</div>
+            <div id="newsPanel" style="margin-top: 12px; background: rgba(0,0,0,0.05); border-radius: 20px; padding: 8px; font-size: 12px;">
+                <div style="font-weight: 600;">📰 Последние новости рынка</div>
+                <div id="latestNewsList" style="max-height: 80px; overflow-y: auto; font-size: 11px;"></div>
+            </div>
+            <div style="font-size: 10px; text-align: center; margin-top: 8px;">Цены обновляются каждые 5 сек. Новости влияют на рынок.</div>
         </div>
         <div class="pseudo-science-note">⚠️ Игра не является инвестиционной рекомендацией. Налог 13%, комиссия 0.05%, дивиденды раз в 2 мин.</div>
     </div>
@@ -1203,7 +1311,7 @@ body.dark .chart-mode-btn.active {
     const MAX_RECORD = 999;
     
     // ---------- ОБЩИЕ ФУНКЦИИ ----------
-    const APP_VERSION = "8.34 Beta";
+    const APP_VERSION = "8.35 Beta";
     
     let darkMode = localStorage.getItem('darkMode') === 'true';
     function applyTheme() {
@@ -2797,89 +2905,152 @@ body.dark .chart-mode-btn.active {
         }
     }
     
-   // ---------- ИГРА ИНВЕСТОР (финальная версия) ----------
+   // ---------- ИГРА ИНВЕСТОР (локальная, с улучшениями) ----------
 let investBalance = 5000;
-let userInvestments = {};
+let userInvestments = {};        // { assetId: { shares, buyPrice } }
 let currentPrices = {};
 let priceHistory = {};
 let candlestickData = {};
-let lastUpdateTimestamp = Date.now();
-let newsInterval = null;
-let dividendInterval = null;
-let priceRefreshInterval = null;
 let currentFilter = 'default';
+let currentCategory = 'all';
 let randomOrder = null;
 let chartMode = 'candles';
+let priceRefreshInterval = null;
+let newsInterval = null;
+let dividendInterval = null;
 let focusedInputId = null;
 
-// Расширенный список компаний (26 компаний, включая ТихвинскийВагонстрой)
+// Список компаний (16 штук, включая Никодрем Корпорейшн)
 const assets = [
-    { id: 'aapl', displayName: 'Яблочный ПК', ticker: 'AAPL', emoji: '🍎', sector: 'Технологии', basePrice: 3800, dividendYield: 0.005 },
-    { id: 'msft', displayName: 'МягкийСофт', ticker: 'MSFT', emoji: '💻', sector: 'Технологии', basePrice: 4100, dividendYield: 0.007 },
-    { id: 'googl', displayName: 'ГуглПлюс', ticker: 'GOOGL', emoji: '🔍', sector: 'Интернет', basePrice: 4900, dividendYield: 0.0 },
-    { id: 'amzn', displayName: 'АмазонкаЛогистик', ticker: 'AMZN', emoji: '📦', sector: 'Торговля', basePrice: 5200, dividendYield: 0.0 },
-    { id: 'tsla', displayName: 'Тэсла Моторс', ticker: 'TSLA', emoji: '⚡', sector: 'Авто', basePrice: 6200, dividendYield: 0.0 },
-    { id: 'gld', displayName: 'ЗолотойЗапас', ticker: 'GLD', emoji: '🥇', sector: 'Металлы', basePrice: 2100, dividendYield: 0.002 },
-    { id: 'uso', displayName: 'НефтянойБаррель', ticker: 'USO', emoji: '🛢️', sector: 'Энергия', basePrice: 1800, dividendYield: 0.03 },
-    { id: 'sber', displayName: 'Сберегательный Банк', ticker: 'SBER', emoji: '🏦', sector: 'Банки', basePrice: 280, dividendYield: 0.08 },
-    { id: 'gazp', displayName: 'Газовый Гигант', ticker: 'GAZP', emoji: '🔥', sector: 'Энергия', basePrice: 195, dividendYield: 0.12 },
-    { id: 'lukoil', displayName: 'Нефтяной Гигант', ticker: 'LKOH', emoji: '⛽', sector: 'Энергия', basePrice: 680, dividendYield: 0.10 },
-    { id: 'yandex', displayName: 'Я.Поиск', ticker: 'YNDX', emoji: '🔎', sector: 'Интернет', basePrice: 310, dividendYield: 0.0 },
-    { id: 'rosneft', displayName: 'Роснефтегаз', ticker: 'ROSN', emoji: '🛢️', sector: 'Энергия', basePrice: 420, dividendYield: 0.09 },
-    { id: 'magnit', displayName: 'Магнитная Розница', ticker: 'MGNT', emoji: '🛒', sector: 'Торговля', basePrice: 195, dividendYield: 0.06 },
-    { id: 'tcsg', displayName: 'Тинькофф Групп', ticker: 'TCSG', emoji: '💳', sector: 'Финансы', basePrice: 470, dividendYield: 0.0 },
-    { id: 'moex', displayName: 'МосБиржа', ticker: 'MOEX', emoji: '🏛️', sector: 'Финансы', basePrice: 130, dividendYield: 0.09 },
-    { id: 'nvda', displayName: 'НВидиа Граф', ticker: 'NVDA', emoji: '🎮', sector: 'Технологии', basePrice: 8900, dividendYield: 0.001 },
-    { id: 'meta', displayName: 'МетаВселенная', ticker: 'META', emoji: '🌐', sector: 'Интернет', basePrice: 5200, dividendYield: 0.0 },
-    { id: 'nflx', displayName: 'Нетфликс Кино', ticker: 'NFLX', emoji: '🎬', sector: 'Развлечения', basePrice: 4500, dividendYield: 0.0 },
-    { id: 'intc', displayName: 'Интел Чип', ticker: 'INTC', emoji: '💾', sector: 'Технологии', basePrice: 370, dividendYield: 0.025 },
-    { id: 'amd', displayName: 'Эймди Райзен', ticker: 'AMD', emoji: '⚙️', sector: 'Технологии', basePrice: 1100, dividendYield: 0.0 },
-    { id: 'tikhvin', displayName: 'ТихвинскийВагонстрой', ticker: 'TVS', emoji: '🚆', sector: 'Машиностроение', basePrice: 150, dividendYield: 0.04 },
-    { id: 'nornick', displayName: 'НорНикель', ticker: 'GMKN', emoji: '⛏️', sector: 'Металлы', basePrice: 12000, dividendYield: 0.11 },
-    { id: 'aeroflot', displayName: 'Аэроборт', ticker: 'AFLT', emoji: '✈️', sector: 'Транспорт', basePrice: 45, dividendYield: 0.0 },
-    { id: 'mts', displayName: 'МТЦ Цифра', ticker: 'MTSS', emoji: '📱', sector: 'Телеком', basePrice: 220, dividendYield: 0.09 },
-    { id: 'rusal', displayName: 'РУС АЛК', ticker: 'RUAL', emoji: '🔩', sector: 'Металлы', basePrice: 38, dividendYield: 0.0 },
-    { id: 'vk', displayName: 'В Контакт', ticker: 'VKCO', emoji: '💬', sector: 'Интернет', basePrice: 480, dividendYield: 0.0 }
+    { id: 'aapl', name: 'Яблочный ПК', emoji: '🍎', sector: 'Технологии', basePrice: 3800, dividendYield: 0.005, sensitivity: 0.0012 },
+    { id: 'msft', name: 'МягкийСофт', emoji: '💻', sector: 'Технологии', basePrice: 4100, dividendYield: 0.007, sensitivity: 0.001 },
+    { id: 'googl', name: 'ГуглПлюс', emoji: '🔍', sector: 'Интернет', basePrice: 4900, dividendYield: 0.0, sensitivity: 0.0011 },
+    { id: 'amzn', name: 'АмазонкаЛогистик', emoji: '📦', sector: 'Торговля', basePrice: 5200, dividendYield: 0.0, sensitivity: 0.0013 },
+    { id: 'tsla', name: 'Тэсла Моторс', emoji: '⚡', sector: 'Авто', basePrice: 6200, dividendYield: 0.0, sensitivity: 0.0018 },
+    { id: 'meta', name: 'МетаВселенная', emoji: '🌐', sector: 'Интернет', basePrice: 5200, dividendYield: 0.0, sensitivity: 0.0014 },
+    { id: 'nvda', name: 'НВидиа Граф', emoji: '🎮', sector: 'Технологии', basePrice: 8900, dividendYield: 0.001, sensitivity: 0.002 },
+    { id: 'nflx', name: 'Нетфликс Кино', emoji: '🎬', sector: 'Развлечения', basePrice: 4500, dividendYield: 0.0, sensitivity: 0.0012 },
+    { id: 'gld', name: 'ЗолотойЗапас', emoji: '🥇', sector: 'Металлы', basePrice: 2100, dividendYield: 0.002, sensitivity: 0.0008 },
+    { id: 'uso', name: 'НефтянойБаррель', emoji: '🛢️', sector: 'Энергия', basePrice: 1800, dividendYield: 0.03, sensitivity: 0.0015 },
+    { id: 'sber', name: 'Сберегательный Банк', emoji: '🏦', sector: 'Банки', basePrice: 280, dividendYield: 0.08, sensitivity: 0.0016 },
+    { id: 'yandex', name: 'Яндекс.Поиск', emoji: '🔎', sector: 'Интернет', basePrice: 310, dividendYield: 0.0, sensitivity: 0.0012 },
+    { id: 'tcsg', name: 'Тинькофф Групп', emoji: '💳', sector: 'Финансы', basePrice: 470, dividendYield: 0.0, sensitivity: 0.0013 },
+    { id: 'aeroflot', name: 'Аэрофлот', emoji: '✈️', sector: 'Транспорт', basePrice: 45, dividendYield: 0.0, sensitivity: 0.0014 },
+    { id: 'tikhvin', name: 'ТихвинскийВагонстрой', emoji: '🚆', sector: 'Машиностроение', basePrice: 150, dividendYield: 0.04, sensitivity: 0.002 },
+    { id: 'nikodrem', name: 'Никодрем Корпорейшн', emoji: '🧪', sector: 'Технологии', basePrice: 1000, dividendYield: 0.02, sensitivity: 0.005 }
 ];
 
-// -------------------- НОВОСТИ --------------------
+// -------------------- НОВОСТИ (не менее 4 на компанию) --------------------
 const newsEvents = [
-    { text: "🏦 Центробанк повысил ключевую ставку", effect: { sector: "all", change: -0.03, duration: 60 }, type: "negative" },
-    { text: "🏭 Нефть Brent подорожала на 5%", effect: { sector: "Энергия", change: 0.04, duration: 45 }, type: "positive" },
-    { text: "📉 Падение фондового рынка из-за геополитики", effect: { sector: "all", change: -0.02, duration: 30 }, type: "negative" },
-    { text: "🚀 SpaceX успешно запустила ракету", effect: { sector: "Технологии", change: 0.02, duration: 40 }, type: "positive" },
-    { text: "💰 Apple выпустила новый iPhone", effect: { ids: ["aapl"], change: 0.05, duration: 60 }, type: "positive" },
-    { text: "⚡ Tesla отзывает партию автомобилей", effect: { ids: ["tsla"], change: -0.04, duration: 50 }, type: "negative" },
-    { text: "📊 Сбербанк отчитался о рекордной прибыли", effect: { ids: ["sber"], change: 0.03, duration: 45 }, type: "positive" },
-    { text: "🔥 Газпром приостанавливает поставки", effect: { ids: ["gazp"], change: -0.06, duration: 70 }, type: "negative" },
-    { text: "🛢️ ОПЕК+ сократила добычу нефти", effect: { sector: "Энергия", change: 0.03, duration: 50 }, type: "positive" },
-    { text: "🏛️ Мосбиржа запускает новые фьючерсы", effect: { ids: ["moex"], change: 0.02, duration: 40 }, type: "positive" },
-    { text: "💳 Тинькофф расширяет экосистему", effect: { ids: ["tcsg"], change: 0.025, duration: 35 }, type: "positive" },
-    { text: "🎮 NVIDIA анонсирует новые видеокарты", effect: { ids: ["nvda"], change: 0.06, duration: 55 }, type: "positive" },
-    { text: "📺 Netflix потерял подписчиков", effect: { ids: ["nflx"], change: -0.05, duration: 60 }, type: "negative" },
-    { text: "💻 Intel задерживает поставки чипов", effect: { ids: ["intc"], change: -0.03, duration: 50 }, type: "negative" },
-    { text: "🌐 Мета открывает метавселенную в РФ", effect: { ids: ["meta"], change: 0.04, duration: 45 }, type: "positive" },
-    { text: "⚙️ AMD перегоняет Intel по производительности", effect: { ids: ["amd"], change: 0.035, duration: 40 }, type: "positive" },
-    { text: "🥇 Золото подешевело на фоне крепкого доллара", effect: { ids: ["gld"], change: -0.02, duration: 35 }, type: "negative" },
-    { text: "🛒 Магнит открывает 100 новых магазинов", effect: { ids: ["magnit"], change: 0.02, duration: 40 }, type: "positive" },
-    { text: "💻 Яндекс создаёт конкурента ChatGPT", effect: { ids: ["yandex"], change: 0.045, duration: 50 }, type: "positive" },
-    { text: "⛽ Лукойл запускает сеть АЗС в Европе", effect: { ids: ["lukoil"], change: 0.03, duration: 45 }, type: "positive" },
-    { text: "🚆 ТихвинскийВагонстрой получил крупный заказ", effect: { ids: ["tikhvin"], change: 0.07, duration: 60 }, type: "positive" },
-    { text: "⛏️ НорНикель сокращает производство", effect: { ids: ["nornick"], change: -0.05, duration: 50 }, type: "negative" }
+    // Общие
+    { text: "🏦 Центробанк повысил ключевую ставку", effect: { sector: "all", change: -0.03 }, type: "negative" },
+    { text: "📉 Падение фондового рынка из-за геополитики", effect: { sector: "all", change: -0.02 }, type: "negative" },
+    { text: "🚀 SpaceX успешно запустила ракету", effect: { sector: "Технологии", change: 0.02 }, type: "positive" },
+    // Apple
+    { text: "💰 Apple выпустила новый iPhone", effect: { ids: ["aapl"], change: 0.05 }, type: "positive" },
+    { text: "🍏 Apple сообщила о снижении продаж", effect: { ids: ["aapl"], change: -0.04 }, type: "negative" },
+    { text: "📱 Apple представила AR-очки", effect: { ids: ["aapl"], change: 0.03 }, type: "positive" },
+    { text: "⚖️ Apple оштрафована в ЕС", effect: { ids: ["aapl"], change: -0.02 }, type: "negative" },
+    // Microsoft
+    { text: "💻 Microsoft выпустила новый GitHub Copilot", effect: { ids: ["msft"], change: 0.04 }, type: "positive" },
+    { text: "🛡️ Утечка данных в Azure", effect: { ids: ["msft"], change: -0.03 }, type: "negative" },
+    { text: "🎮 Microsoft покупает студию игр", effect: { ids: ["msft"], change: 0.025 }, type: "positive" },
+    { text: "📉 Снижение доходов от Windows", effect: { ids: ["msft"], change: -0.02 }, type: "negative" },
+    // Google
+    { text: "🔍 Google улучшил поиск AI", effect: { ids: ["googl"], change: 0.03 }, type: "positive" },
+    { text: "⚖️ Антимонопольный иск к Google", effect: { ids: ["googl"], change: -0.04 }, type: "negative" },
+    { text: "📺 YouTube запускает новые форматы", effect: { ids: ["googl"], change: 0.02 }, type: "positive" },
+    { text: "🔒 Утечка данных пользователей", effect: { ids: ["googl"], change: -0.03 }, type: "negative" },
+    // Amazon
+    { text: "📦 Amazon открывает новые склады", effect: { ids: ["amzn"], change: 0.02 }, type: "positive" },
+    { text: "🚚 Забастовка водителей Amazon", effect: { ids: ["amzn"], change: -0.03 }, type: "negative" },
+    { text: "🎬 Amazon Studios выпускает блокбастер", effect: { ids: ["amzn"], change: 0.025 }, type: "positive" },
+    { text: "📉 Снижение продаж в сезон", effect: { ids: ["amzn"], change: -0.02 }, type: "negative" },
+    // Tesla
+    { text: "⚡ Tesla отзывает партию автомобилей", effect: { ids: ["tsla"], change: -0.04 }, type: "negative" },
+    { text: "🚀 Tesla запускает новый Cybertruck", effect: { ids: ["tsla"], change: 0.06 }, type: "positive" },
+    { text: "🔋 Tesla улучшила батареи", effect: { ids: ["tsla"], change: 0.03 }, type: "positive" },
+    { text: "⚖️ Иск к Tesla за автопилот", effect: { ids: ["tsla"], change: -0.05 }, type: "negative" },
+    // Meta
+    { text: "🌐 Мета открывает метавселенную в РФ", effect: { ids: ["meta"], change: 0.04 }, type: "positive" },
+    { text: "📉 Падение рекламных доходов Meta", effect: { ids: ["meta"], change: -0.05 }, type: "negative" },
+    { text: "🕶️ Meta анонсирует новые очки", effect: { ids: ["meta"], change: 0.03 }, type: "positive" },
+    { text: "🔒 Скандал с приватностью", effect: { ids: ["meta"], change: -0.04 }, type: "negative" },
+    // NVIDIA
+    { text: "🎮 NVIDIA анонсирует новые видеокарты", effect: { ids: ["nvda"], change: 0.06 }, type: "positive" },
+    { text: "💥 Задержка поставок чипов", effect: { ids: ["nvda"], change: -0.04 }, type: "negative" },
+    { text: "🤖 NVIDIA развивает AI-чипы", effect: { ids: ["nvda"], change: 0.05 }, type: "positive" },
+    { text: "📉 Снижение спроса на майнинг", effect: { ids: ["nvda"], change: -0.03 }, type: "negative" },
+    // Netflix
+    { text: "📺 Netflix потерял подписчиков", effect: { ids: ["nflx"], change: -0.05 }, type: "negative" },
+    { text: "🎬 Netflix выпустил хит-сериал", effect: { ids: ["nflx"], change: 0.04 }, type: "positive" },
+    { text: "📱 Netflix запускает игры", effect: { ids: ["nflx"], change: 0.02 }, type: "positive" },
+    { text: "⚖️ Иск от правообладателей", effect: { ids: ["nflx"], change: -0.03 }, type: "negative" },
+    // Gold
+    { text: "🥇 Золото подешевело на фоне крепкого доллара", effect: { ids: ["gld"], change: -0.02 }, type: "negative" },
+    { text: "💰 Рост спроса на золото", effect: { ids: ["gld"], change: 0.03 }, type: "positive" },
+    { text: "🏦 Центробанки закупают золото", effect: { ids: ["gld"], change: 0.025 }, type: "positive" },
+    { text: "📉 Падение цен на драгметаллы", effect: { ids: ["gld"], change: -0.015 }, type: "negative" },
+    // Oil
+    { text: "🛢️ Нефть Brent подорожала на 5%", effect: { ids: ["uso"], change: 0.04 }, type: "positive" },
+    { text: "🛢️ ОПЕК+ сократила добычу нефти", effect: { ids: ["uso"], change: 0.03 }, type: "positive" },
+    { text: "📉 Падение цен на нефть из-за санкций", effect: { ids: ["uso"], change: -0.05 }, type: "negative" },
+    { text: "🔥 Пожар на нефтезаводе", effect: { ids: ["uso"], change: -0.04 }, type: "negative" },
+    // Sber
+    { text: "📊 Сбербанк отчитался о рекордной прибыли", effect: { ids: ["sber"], change: 0.03 }, type: "positive" },
+    { text: "💳 Сбер запускает новый кредитный продукт", effect: { ids: ["sber"], change: 0.02 }, type: "positive" },
+    { text: "⚖️ Претензии ЦБ к Сберу", effect: { ids: ["sber"], change: -0.02 }, type: "negative" },
+    { text: "📉 Снижение доходности вкладов", effect: { ids: ["sber"], change: -0.015 }, type: "negative" },
+    // Yandex
+    { text: "💻 Яндекс создаёт конкурента ChatGPT", effect: { ids: ["yandex"], change: 0.045 }, type: "positive" },
+    { text: "🚕 Яндекс.Такси расширяет сеть", effect: { ids: ["yandex"], change: 0.02 }, type: "positive" },
+    { text: "⚖️ Антимонопольное расследование", effect: { ids: ["yandex"], change: -0.03 }, type: "negative" },
+    { text: "📉 Падение акций после отчёта", effect: { ids: ["yandex"], change: -0.025 }, type: "negative" },
+    // Tinkoff
+    { text: "💳 Тинькофф расширяет экосистему", effect: { ids: ["tcsg"], change: 0.025 }, type: "positive" },
+    { text: "📱 Запуск нового приложения", effect: { ids: ["tcsg"], change: 0.02 }, type: "positive" },
+    { text: "⚖️ Спор с ЦБ", effect: { ids: ["tcsg"], change: -0.02 }, type: "negative" },
+    { text: "📉 Отток клиентов", effect: { ids: ["tcsg"], change: -0.015 }, type: "negative" },
+    // Aeroflot
+    { text: "✈️ Аэрофлот запускает новые рейсы", effect: { ids: ["aeroflot"], change: 0.02 }, type: "positive" },
+    { text: "🛫 Снижение цен на билеты", effect: { ids: ["aeroflot"], change: -0.01 }, type: "negative" },
+    { text: "✅ Рост пассажиропотока", effect: { ids: ["aeroflot"], change: 0.03 }, type: "positive" },
+    { text: "🚧 Задержки рейсов из-за погоды", effect: { ids: ["aeroflot"], change: -0.02 }, type: "negative" },
+    // Tikhvin
+    { text: "🚆 ТихвинскийВагонстрой получил крупный заказ", effect: { ids: ["tikhvin"], change: 0.07 }, type: "positive" },
+    { text: "🏭 Запуск нового завода", effect: { ids: ["tikhvin"], change: 0.04 }, type: "positive" },
+    { text: "📉 Падение спроса на вагоны", effect: { ids: ["tikhvin"], change: -0.05 }, type: "negative" },
+    { text: "⚖️ Иск о нарушении контракта", effect: { ids: ["tikhvin"], change: -0.03 }, type: "negative" },
+    // Nikodrem Corp (специальные)
+    { text: "🧪 Никодрем выпустил инновационный препарат", effect: { ids: ["nikodrem"], change: 0.08 }, type: "positive" },
+    { text: "📉 Провал клинических испытаний", effect: { ids: ["nikodrem"], change: -0.07 }, type: "negative" },
+    { text: "🏆 Никодрем получил грант", effect: { ids: ["nikodrem"], change: 0.05 }, type: "positive" },
+    { text: "⚖️ Судебный иск от конкурентов", effect: { ids: ["nikodrem"], change: -0.04 }, type: "negative" }
 ];
 
 let activeNewsEffects = [];
+let latestNews = [];
 
 function showNewsToast(text, type) {
+    const panel = document.getElementById('latestNewsList');
+    if (panel) {
+        const newsItem = document.createElement('div');
+        newsItem.className = 'news-item';
+        newsItem.style.cssText = `color: ${type === 'positive' ? '#10b981' : '#ef4444'};`;
+        newsItem.innerText = `${type === 'positive' ? '📢' : '⚠️'} ${text}`;
+        panel.prepend(newsItem);
+        if (panel.children.length > 10) panel.removeChild(panel.lastChild);
+    }
+    // также всплывающий тост (опционально)
     const toast = document.createElement('div');
     toast.className = `news-toast ${type}`;
-    toast.innerHTML = `<span>${type === 'positive' ? '📢' : '⚠️'}</span> ${text}`;
+    toast.innerHTML = `<span>${type === 'positive' ? '📈' : '📉'}</span> ${text}`;
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 5000);
+    setTimeout(() => toast.remove(), 4000);
 }
 
 function applyNewsEffect(news) {
-    activeNewsEffects.push({ effect: news.effect, expires: Date.now() + news.effect.duration * 1000 });
+    activeNewsEffects.push({ effect: news.effect, expires: Date.now() + 45000 });
     showNewsToast(news.text, news.type);
     updatePricesWithEffects();
 }
@@ -2892,6 +3063,11 @@ function seededRandom(seed) {
 function updatePricesWithEffects() {
     const now = Date.now();
     activeNewsEffects = activeNewsEffects.filter(e => e.expires > now);
+    // Никодрем Корпорейшн: дополнительное влияние от вложений игрока
+    let nikodremShares = userInvestments['nikodrem'] ? userInvestments['nikodrem'].shares : 0;
+    // Доп. коэффициент от доли вложений (макс. +/- 5%)
+    let nikodremExtra = (nikodremShares * currentPrices['nikodrem'] / 10000) * 0.002; // небольшая чувствительность
+    
     for (let asset of assets) {
         let oldPrice = currentPrices[asset.id] || asset.basePrice;
         let change = 0;
@@ -2902,6 +3078,9 @@ function updatePricesWithEffects() {
             if (e.sector === 'all' || e.sector === asset.sector || (e.ids && e.ids.includes(asset.id))) {
                 change += e.change;
             }
+        }
+        if (asset.id === 'nikodrem') {
+            change += nikodremExtra;
         }
         let newPrice = oldPrice * (1 + change);
         newPrice = Math.max(1, newPrice);
@@ -3046,9 +3225,10 @@ function drawLineChart(canvas, candles) {
 }
 
 function getSortedAssets() {
+    let filtered = assets.filter(a => currentCategory === 'all' || a.sector === currentCategory);
     if (currentFilter === 'random') {
         if (!randomOrder) {
-            randomOrder = [...assets];
+            randomOrder = [...filtered];
             for (let i = randomOrder.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [randomOrder[i], randomOrder[j]] = [randomOrder[j], randomOrder[i]];
@@ -3056,7 +3236,7 @@ function getSortedAssets() {
         }
         return randomOrder;
     }
-    let sorted = [...assets];
+    let sorted = [...filtered];
     if (currentFilter === 'profit') {
         sorted.sort((a,b) => {
             const profitA = (currentPrices[a.id] - a.basePrice) / a.basePrice;
@@ -3065,6 +3245,13 @@ function getSortedAssets() {
         });
     } else if (currentFilter === 'price') {
         sorted.sort((a,b) => (currentPrices[b.id] || 0) - (currentPrices[a.id] || 0));
+    } else { // default: купленные акции вверху, остальные по id
+        sorted.sort((a,b) => {
+            const ownedA = userInvestments[a.id] ? 1 : 0;
+            const ownedB = userInvestments[b.id] ? 1 : 0;
+            if (ownedA !== ownedB) return ownedB - ownedA;
+            return a.id.localeCompare(b.id);
+        });
     }
     return sorted;
 }
@@ -3110,7 +3297,7 @@ function renderAssetsList(keepFocus = false) {
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div style="font-size: 28px;">${asset.emoji}</div>
                         <div>
-                            <div class="invest-asset-name">${asset.displayName}</div>
+                            <div class="invest-asset-name">${asset.name}</div>
                             <div style="font-size: 11px; opacity: 0.7;">${asset.sector}</div>
                             <div style="font-size: 11px; ${changeClass}">📊 ${changeFromBase}% с начала</div>
                         </div>
@@ -3183,9 +3370,9 @@ function buyAsset(assetId, rubAmount) {
         const old = userInvestments[assetId];
         const totalShares = old.shares + shares;
         const totalCost = old.shares * old.buyPrice + rubAmount;
-        userInvestments[assetId] = { shares: totalShares, buyPrice: totalCost / totalShares, lastUpdate: Date.now() };
+        userInvestments[assetId] = { shares: totalShares, buyPrice: totalCost / totalShares };
     } else {
-        userInvestments[assetId] = { shares, buyPrice: price, lastUpdate: Date.now() };
+        userInvestments[assetId] = { shares, buyPrice: price };
     }
     investBalance -= rubAmount;
     updateBalanceDisplay();
@@ -3233,71 +3420,10 @@ function payDividends() {
     }
 }
 
-function updateLeaderboard() {
-    const today = new Date().toDateString();
-    let leaderboard = localStorage.getItem('investorLeaderboard') ? JSON.parse(localStorage.getItem('investorLeaderboard')) : { date: today, entries: [] };
-    if (leaderboard.date !== today) leaderboard = { date: today, entries: [] };
-    let playerName = (typeof snakeCurrentPlayer !== 'undefined' && snakeCurrentPlayer) || localStorage.getItem('snakeCurrentPlayer') || 'Аноним';
-    const startCapital = parseFloat(localStorage.getItem('investorStartCapital')) || 5000;
-    const currentCapital = investBalance + Object.values(userInvestments).reduce((sum, inv) => sum + inv.shares * currentPrices[inv.id], 0);
-    const profitPercent = ((currentCapital - startCapital) / startCapital) * 100;
-    const existing = leaderboard.entries.find(e => e.name === playerName);
-    if (existing) existing.profitPercent = profitPercent;
-    else leaderboard.entries.push({ name: playerName, profitPercent });
-    leaderboard.entries.sort((a,b) => b.profitPercent - a.profitPercent);
-    leaderboard.entries = leaderboard.entries.slice(0, 10);
-    localStorage.setItem('investorLeaderboard', JSON.stringify(leaderboard));
-    console.log('📊 Ежедневный рейтинг:', leaderboard.entries);
-}
-
-function initHistoryAndPrices() {
-    // Сброс до базовых цен
-    for (let asset of assets) {
-        currentPrices[asset.id] = asset.basePrice;
-        priceHistory[asset.id] = [asset.basePrice];
-    }
-    // Генерируем 20 шагов случайного блуждания
-    for (let step = 0; step < 20; step++) {
-        for (let asset of assets) {
-            let oldPrice = currentPrices[asset.id];
-            let r = seededRandom(step * 100 + asset.id.charCodeAt(0));
-            let change = (r - 0.5) * 0.025;
-            let newPrice = oldPrice * (1 + change);
-            newPrice = Math.max(1, newPrice);
-            newPrice = Math.round(newPrice * 100) / 100;
-            currentPrices[asset.id] = newPrice;
-            priceHistory[asset.id].push(newPrice);
-        }
-    }
-    // Строим свечи из сгенерированной истории
-    for (let asset of assets) {
-        const prices = priceHistory[asset.id];
-        if (!prices || prices.length === 0) continue;
-        const candles = [];
-        for (let i = 1; i < prices.length; i++) {
-            const open = prices[i-1];
-            const close = prices[i];
-            const high = Math.max(open, close) * (1 + Math.random() * 0.005);
-            const low = Math.min(open, close) * (1 - Math.random() * 0.005);
-            candles.push({ open, high, low, close, time: Date.now() - (prices.length - i) * 5000 });
-        }
-        candlestickData[asset.id] = {
-            candles: candles,
-            currentOpen: prices[prices.length-1],
-            currentHigh: prices[prices.length-1],
-            currentLow: prices[prices.length-1],
-            currentClose: prices[prices.length-1],
-            lastTime: Date.now()
-        };
-    }
-    // Текущие цены оставляем последние
-}
-
 function updateBalanceDisplay() {
     const balanceDiv = document.getElementById('investBalance');
     if (balanceDiv) balanceDiv.innerText = `${investBalance.toFixed(0)} ₽`;
     updateTotalProfit();
-    updateLeaderboard();
 }
 
 function updateTotalProfit() {
@@ -3322,7 +3448,7 @@ function saveGameState() {
         balance: investBalance,
         investments: userInvestments,
         lastSaveTime: Date.now(),
-        startCapital: localStorage.getItem('investorStartCapital') || 5000
+        startCapital: 5000
     }));
 }
 
@@ -3334,22 +3460,54 @@ function loadGameState() {
             investBalance = data.balance;
             userInvestments = data.investments || {};
             if (investBalance < 0) investBalance = 5000;
-            localStorage.setItem('investorStartCapital', data.startCapital || 5000);
         } catch(e) { }
     } else {
-        localStorage.setItem('investorStartCapital', '5000');
         investBalance = 5000;
+        userInvestments = {};
     }
 }
 
-async function refreshPricesAndUpdate() {
+function initHistoryAndPrices() {
+    for (let asset of assets) {
+        currentPrices[asset.id] = asset.basePrice;
+        priceHistory[asset.id] = [asset.basePrice];
+    }
+    for (let step = 0; step < 20; step++) {
+        for (let asset of assets) {
+            let oldPrice = currentPrices[asset.id];
+            let r = seededRandom(step * 100 + asset.id.charCodeAt(0));
+            let change = (r - 0.5) * 0.025;
+            let newPrice = oldPrice * (1 + change);
+            newPrice = Math.max(1, newPrice);
+            newPrice = Math.round(newPrice * 100) / 100;
+            currentPrices[asset.id] = newPrice;
+            priceHistory[asset.id].push(newPrice);
+        }
+    }
+    for (let asset of assets) {
+        const prices = priceHistory[asset.id];
+        const candles = [];
+        for (let i = 1; i < prices.length; i++) {
+            candles.push({
+                open: prices[i-1],
+                high: Math.max(prices[i-1], prices[i]) * (1 + Math.random()*0.005),
+                low: Math.min(prices[i-1], prices[i]) * (1 - Math.random()*0.005),
+                close: prices[i],
+                time: Date.now() - (prices.length - i) * 5000
+            });
+        }
+        candlestickData[asset.id] = { candles, currentOpen: prices[prices.length-1], currentHigh: prices[prices.length-1], currentLow: prices[prices.length-1], currentClose: prices[prices.length-1], lastTime: Date.now() };
+    }
+}
+
+async function refreshPrices() {
     updatePricesWithEffects();
 }
 
 function scheduleNews() {
     if (newsInterval) clearInterval(newsInterval);
     newsInterval = setInterval(() => {
-        if (Math.random() < 0.7) {
+        if (Math.random() < 0.6) { // 60% шанс каждые 25 секунд
             const randomNews = newsEvents[Math.floor(Math.random() * newsEvents.length)];
             applyNewsEffect(randomNews);
         }
@@ -3371,6 +3529,18 @@ function initFilters() {
             renderAssetsList(true);
         });
     });
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCategory = btn.dataset.category;
+            randomOrder = null;
+            renderAssetsList(true);
+        });
+    });
+    // активируем кнопку "Все"
+    const allBtn = document.querySelector('.category-btn[data-category="all"]');
+    if (allBtn) allBtn.classList.add('active');
 }
 
 function setChartMode(mode) {
@@ -3415,7 +3585,7 @@ function initInvestorGame() {
     initHistoryAndPrices();
     updateBalanceDisplay();
     if (priceRefreshInterval) clearInterval(priceRefreshInterval);
-    priceRefreshInterval = setInterval(() => refreshPricesAndUpdate(), 5000);
+    priceRefreshInterval = setInterval(() => refreshPrices(), 5000);
     scheduleNews();
     scheduleDividends();
     initFilters();
@@ -3428,7 +3598,7 @@ function initInvestorGame() {
     if (learnBtn) learnBtn.addEventListener('click', showEconomicsModal);
 }
 
-// Автоматический запуск при загрузке DOM
+// Запуск
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('investAssetsList')) initInvestorGame();
 });
