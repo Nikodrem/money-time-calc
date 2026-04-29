@@ -916,6 +916,7 @@
         .pseudo-science-note { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 20px; }
         
         /* ========== НОВЫЕ СТИЛИ ДЛЯ ИНВЕСТОРА ========== */
+/* ========== СТИЛИ РАЗДЕЛА "ИНВЕСТОР" (ТЁМНАЯ ТЕМА ИСПРАВЛЕНА) ========== */
 .invest-header {
     display: flex;
     align-items: center;
@@ -937,7 +938,6 @@
     font-weight: 600;
     color: white;
     cursor: pointer;
-    transition: transform 0.1s;
 }
 .btn-guide:active { transform: scale(0.96); }
 body.dark .btn-guide { background: #7c3aed; }
@@ -947,6 +947,7 @@ body.dark .btn-guide { background: #7c3aed; }
     gap: 8px;
     margin: 12px 0;
     flex-wrap: wrap;
+    justify-content: center;
 }
 .filter-btn {
     background: #475569;
@@ -956,18 +957,28 @@ body.dark .btn-guide { background: #7c3aed; }
     color: white;
     font-weight: 500;
     cursor: pointer;
-    transition: transform 0.1s;
 }
 .filter-btn:active { transform: scale(0.96); }
 .filter-btn.active {
     background: #3b82f6;
 }
+/* Тёмная тема для кнопок фильтров */
+body.dark .filter-btn {
+    background: #334155;
+    color: #e2e8f0;
+}
+body.dark .filter-btn.active {
+    background: #3b82f6;
+    color: white;
+}
+
+/* Список акций */
 #investAssetsList {
     max-height: 480px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 .invest-asset-card {
     background: white;
@@ -975,255 +986,45 @@ body.dark .btn-guide { background: #7c3aed; }
     padding: 16px;
     transition: background 0.3s;
 }
-body.dark .invest-asset-card { background: #334155; }
+body.dark .invest-asset-card {
+    background: #1e293b !important;
+}
+/* Графики */
 .candlestick-canvas {
     width: 100%;
     height: 120px;
     background: #1e293b;
     border-radius: 16px;
     margin-top: 8px;
+    pointer-events: none; /* скролл не залипает */
 }
 .profit-positive { color: #10b981; }
 .profit-negative { color: #ef4444; }
+/* Поле ввода количества */
 .invest-input {
     background: white;
     border-radius: 60px;
     border: 1px solid #cbd5e1;
     padding: 10px;
 }
-.news-toast {
-    position: fixed;
-    top: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1e293b;
-    color: white;
-    border-radius: 60px;
-    padding: 12px 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    z-index: 3000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    animation: slideDown 0.3s ease;
-    max-width: 90%;
-    text-align: center;
-    font-size: 14px;
-}
-.news-toast.positive { border-left: 6px solid #10b981; }
-.news-toast.negative { border-left: 6px solid #ef4444; }
-@keyframes slideDown {
-    from { opacity: 0; transform: translateX(-50%) translateY(-100px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-        
-    /* Доп. стили для кнопки переключения режима графика */
-#toggleChartMode {
-    transition: transform 0.1s;
-}
-#toggleChartMode:active {
-    transform: scale(0.96);
-}
-        
-    /* Стили для переключения режима графика (две кнопки в группе) */
-.chart-mode-btn {
-    background: transparent;
-    border: none;
-    border-radius: 40px;
-    padding: 6px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #cbd5e1;
-    cursor: pointer;
-    transition: all 0.1s;
-}
-.chart-mode-btn.active {
-    background: #3b82f6;
-    color: white;
-}
-.chart-mode-btn:active {
-    transform: scale(0.96);
-}
-body.dark .chart-mode-btn.active {
-    background: #3b82f6;
-}
-        
-    /* ========== ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ ИНВЕСТОРА ========== */
-/* Убираем лишние отступы */
-.life-box {
-    padding: 12px !important;
-}
-.invest-header {
-    margin-bottom: 12px;
-}
-.filter-bar {
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-}
-.category-bar {
-    gap: 6px;
-    margin-bottom: 12px;
-}
-.category-btn {
-    background: #64748b;
-    border: none;
-    border-radius: 30px;
-    padding: 4px 12px;
-    font-size: 12px;
-    color: white;
-    cursor: pointer;
-    transition: 0.1s;
-}
-.category-btn.active {
-    background: #3b82f6;
-}
-.category-btn:active {
-    transform: scale(0.96);
-}
-body.dark .category-btn {
-    background: #475569;
-}
-body.dark .category-btn.active {
-    background: #3b82f6;
-}
-/* Прокрутка списка акций без мёртвых зон */
-#investAssetsList canvas {
-    pointer-events: none;  /* чтобы скролл работал через канвас */
-}
-/* Оформление новостной панели */
-#newsPanel {
-    background: #f1f5f9;
-    border-radius: 20px;
-}
-body.dark #newsPanel {
-    background: #1e293b;
-}
-#latestNewsList {
-    scrollbar-width: thin;
-}
-.news-item {
-    padding: 2px 4px;
-    border-bottom: 1px solid #cbd5e1;
-    white-space: nowrap;
-    overflow-x: auto;
-}
-body.dark .news-item {
-    border-bottom-color: #475569;
-}
-/* Вкладки Жизни – фикс высоты */
-#lifeLocalTabs .local-tab {
-    white-space: nowrap;
-    font-size: 14px;
-    padding: 6px 12px;
-}
-#lifeLocalTabs {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-}
-/* Тёмная тема для обрамлений */
-body.dark .life-box {
-    background: #1e293b;
-    border-color: #334155;
-}
-body.dark #newsPanel {
-    background: #0f172a;
-}
-body.dark .filter-btn, body.dark .category-btn {
-    background: #334155;
-    color: #cbd5e1;
-}
-body.dark .filter-btn.active, body.dark .category-btn.active {
-    background: #3b82f6;
-    color: white;
-}
-        
-    /* Расширенное обрамление и тёмная тема для вкладок */
-#lifeLocalTabs {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    background: #e2e8f0; /* светлая тема */
-}
-body.dark #lifeLocalTabs {
-    background: #1e293b;
-}
-#lifeLocalTabs .local-tab {
-    white-space: nowrap;
-    font-size: 14px;
-    padding: 10px 16px;
-    border-radius: 40px;
-    transition: all 0.1s;
-    background: transparent;
-    color: #1f2937;
-}
-body.dark #lifeLocalTabs .local-tab {
-    color: #cbd5e1;
-}
-#lifeLocalTabs .local-tab.active {
-    background: #3b82f6;
-    color: white;
-}
-body.dark #lifeLocalTabs .local-tab.active {
-    background: #3b82f6;
-    color: white;
-}
-
-/* Расширение контейнеров */
-.life-box {
-    padding: 12px !important;
-    margin-bottom: 12px !important;
-}
-.invest-asset-card {
-    padding: 12px !important;
-}
-.candlestick-canvas {
-    pointer-events: none;  /* чтобы скролл работал через график */
-    width: 100%;
-    height: 120px;
-}
-/* Блок "Ваш капитал" в тёмной теме */
-body.dark #investBalance + div,
-body.dark .life-box div[style*="background: #eef2f6"] {
-    background: #0f172a !important;
-    color: #e2e8f0 !important;
-}
-        
-    /* Тёмная тема для внутренних блоков Инвестора */
-body.dark .life-box {
-    background: #1e293b;
-    border-color: #334155;
-}
-body.dark .invest-asset-card {
-    background: #1e293b !important;
-}
-body.dark .filter-bar .filter-btn {
-    background: #334155;
-    color: #e2e8f0;
-}
-body.dark .filter-bar .filter-btn.active {
-    background: #3b82f6;
-}
-body.dark #investAssetsContainer > div {
-    background: #0f172a;
-}
 body.dark .invest-input {
     background: #334155;
     border-color: #475569;
     color: white;
 }
-/* Обрамление "Ваш капитал" в светлой теме */
+/* Контейнер капитала */
 .life-box .capital-box {
     background: #eef2f6;
     border-radius: 60px;
     padding: 12px 20px;
     margin-bottom: 16px;
     text-align: center;
-    transition: background 0.3s;
 }
 body.dark .life-box .capital-box {
     background: #0f172a;
     color: #e2e8f0;
 }
-/* Модальное окно руководства – центрирование */
+/* Модальное окно руководства (исправлено центрирование) */
 .modal-learn {
     position: fixed;
     top: 0;
@@ -1249,26 +1050,45 @@ body.dark .life-box .capital-box {
     overflow-y: auto;
     margin: auto;
 }
-/* Стиль для блока итоговой суммы */
-.preview-purchase {
-    background: #e2e8f0;
-    border-radius: 40px;
-    padding: 6px 12px;
-    font-size: 13px;
-    text-align: center;
+/* Бегущая строка новостей внутри блока */
+#newsTicker {
     margin-top: 8px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 20px;
+    padding: 6px;
+    text-align: center;
+    font-size: 12px;
 }
-body.dark .preview-purchase {
-    background: #334155;
+body.dark #newsTicker {
+    background: #0f172a;
 }
-/* Анимация вспышки при изменении цены */
-@keyframes priceFlash {
-    0% { background-color: rgba(59,130,246,0); }
-    50% { background-color: rgba(59,130,246,0.3); }
-    100% { background-color: rgba(59,130,246,0); }
+/* Вкладки жизни – без скачков и с тёмной темой */
+#lifeLocalTabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    background: #e2e8f0;
 }
-.price-flash {
-    animation: priceFlash 0.5s ease;
+body.dark #lifeLocalTabs {
+    background: #1e293b;
+}
+#lifeLocalTabs .local-tab {
+    white-space: nowrap;
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 40px;
+    background: transparent;
+    color: #1f2937;
+}
+body.dark #lifeLocalTabs .local-tab {
+    color: #cbd5e1;
+}
+#lifeLocalTabs .local-tab.active {
+    background: #3b82f6;
+    color: white;
+}
+body.dark #lifeLocalTabs .local-tab.active {
+    background: #3b82f6;
+    color: white;
 }
         
     </style>
@@ -1301,39 +1121,37 @@ body.dark .preview-purchase {
     </div>
 
     <!-- Вкладка 3: Инвестор -->
-<div id="lifeZodiacContent" class="local-content">
-    <div class="life-box">
-        <div class="invest-header">
-            <div class="invest-title">🎮 Инвестиционный симулятор</div>
-            <button id="btnLearnEconomics" class="btn-guide">📘 Руководство</button>
-        </div>
-        <div class="capital-box">
-            <div>💰 Ваш капитал</div>
-            <div style="font-size: 28px; font-weight: 700;" id="investBalance">5000 ₽</div>
-            <div id="investDailyReturn" style="font-size: 12px;"></div>
-            <div id="investTotalProfit" style="font-size: 13px; font-weight: 500; margin-top: 6px;"></div>
-        </div>
-        <!-- Фильтры (4 основных в одну строку) -->
-        <div class="filter-bar" style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
-            <button class="filter-btn active" data-filter="default">📊 По умолчанию</button>
-            <button class="filter-btn" data-filter="profit">📈 По прибыльности</button>
-            <button class="filter-btn" data-filter="price">💰 По цене</button>
-            <button class="filter-btn" data-filter="random">🎲 Случайно</button>
-        </div>
-        <div style="background: #f8fafc; border-radius: 28px; padding: 12px; margin-top: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <div style="font-weight: 600;">📈 Доступные акции</div>
-                <button id="sellAllBtn" class="calc-btn" style="background: #ef4444; height: 36px; padding: 0 16px; font-size: 13px;">Продать всё</button>
+    <div id="lifeZodiacContent" class="local-content">
+        <div class="life-box">
+            <div class="invest-header">
+                <div class="invest-title">🎮 Инвестиционный симулятор</div>
+                <button id="btnLearnEconomics" class="btn-guide">📘 Руководство</button>
             </div>
-            <div id="investAssetsContainer">
-                <div id="investAssetsList" style="max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;"></div>
+            <div class="capital-box" style="background:#eef2f6; border-radius:60px; padding:12px 20px; margin-bottom:16px; text-align:center;">
+                <div>💰 Ваш капитал</div>
+                <div style="font-size:28px; font-weight:700;" id="investBalance">5000 ₽</div>
+                <div id="investTotalProfit" style="font-size:12px;"></div>
             </div>
-            <div style="font-size: 11px; text-align: center; margin-top: 10px;">Цены обновляются каждые 5 сек. Новости влияют на рынок.</div>
-            <div id="newsTicker" style="margin-top: 8px; font-size: 12px; background: rgba(0,0,0,0.05); border-radius: 20px; padding: 6px; text-align: center;"></div>
+            <!-- Фильтры (4 кнопки) -->
+            <div class="filter-bar" style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:12px;">
+                <button class="filter-btn active" data-filter="default">📊 По умолчанию</button>
+                <button class="filter-btn" data-filter="profit">📈 По прибыльности</button>
+                <button class="filter-btn" data-filter="price">💰 По цене</button>
+                <button class="filter-btn" data-filter="random">🎲 Случайно</button>
+            </div>
+            <div style="background:#f8fafc; border-radius:28px; padding:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <div style="font-weight:600;">📈 Доступные акции</div>
+                    <button id="sellAllBtn" class="calc-btn" style="background:#ef4444; height:36px; padding:0 16px; font-size:13px;">Продать всё</button>
+                </div>
+                <div id="investAssetsContainer">
+                    <div id="investAssetsList" style="max-height:480px; overflow-y:auto; display:flex; flex-direction:column; gap:12px;"></div>
+                </div>
+                <div style="font-size:11px; text-align:center; margin-top:10px;">Цены обновляются каждые 5 сек. Новости влияют на рынок.</div>
+            </div>
+            <div class="pseudo-science-note">⚠️ Игра не является инвестиционной рекомендацией. Налог 13%, комиссия 0.05%, дивиденды раз в 2 мин.</div>
         </div>
-        <div class="pseudo-science-note">⚠️ Игра не является инвестиционной рекомендацией. Налог 13%, комиссия 0.05%, дивиденды раз в 2 мин.</div>
     </div>
-</div>
     
     <!-- Вкладка 4: Обратный отсчёт -->
     <div id="lifeCountdownContent" class="local-content">
@@ -3020,9 +2838,9 @@ body.dark .preview-purchase {
         }
     }
     
-   // ---------- ИГРА ИНВЕСТОР (улучшенная: корзина, продажа всех, owned сверху) ----------
+   // ---------- ИГРА ИНВЕСТОР (исправленная тёмная тема, старый дизайн, фильтры) ----------
 let investBalance = 5000;
-let userInvestments = {};       // { assetId: { shares, buyPrice } }
+let userInvestments = {};
 let currentPrices = {};
 let priceHistory = {};
 let candlestickData = {};
@@ -3032,9 +2850,7 @@ let chartMode = 'candles';
 let priceRefreshInterval = null;
 let newsInterval = null;
 let dividendInterval = null;
-let pendingBuy = {};            // { assetId: quantity }
 
-// 15 компаний
 const assets = [
     { id: 'aapl', displayName: 'Apple', ticker: 'AAPL', emoji: '🍎', sector: 'Технологии', basePrice: 3800, dividendYield: 0.005 },
     { id: 'msft', displayName: 'Microsoft', ticker: 'MSFT', emoji: '💻', sector: 'Технологии', basePrice: 4100, dividendYield: 0.007 },
@@ -3053,7 +2869,6 @@ const assets = [
     { id: 'yandex', displayName: 'Yandex', ticker: 'YNDX', emoji: '🔎', sector: 'Интернет', basePrice: 310, dividendYield: 0.0 }
 ];
 
-// Новости (те же, но сократил для компактности – оставил по 2-3 на компанию)
 const newsEvents = [
     { text: "🏦 Центробанк повысил ставку", effect: { sector: "all", change: -0.03 }, type: "negative" },
     { text: "🏭 Нефть подорожала на 5%", effect: { sector: "Энергия", change: 0.04 }, type: "positive" },
@@ -3072,17 +2887,16 @@ const newsEvents = [
     { text: "🥇 Золото подешевело", effect: { ids: ["gld"], change: -0.02 }, type: "negative" },
     { text: "🔎 Яндекс создаёт конкурента ChatGPT", effect: { ids: ["yandex"], change: 0.045 }, type: "positive" },
     { text: "☕ Microsoft представляет ИИ-чип", effect: { ids: ["msft"], change: 0.04 }, type: "positive" },
-    { text: "📦 Amazon расширяет доставку", effect: { ids: ["amzn"], change: 0.03 }, type: "positive" },
-    { text: "🔍 Google увольняет сотрудников", effect: { ids: ["googl"], change: -0.02 }, type: "negative" }
+    { text: "📦 Amazon расширяет доставку", effect: { ids: ["amzn"], change: 0.03 }, type: "positive" }
 ];
 let activeNewsEffects = [];
 
 function showNewsToast(text, type) {
-    const newsDiv = document.getElementById('newsTicker');
-    if (newsDiv) {
-        newsDiv.innerHTML = `<span style="color: ${type === 'positive' ? '#10b981' : '#ef4444'};">${type === 'positive' ? '📈' : '📉'} ${text}</span>`;
-        setTimeout(() => { if (newsDiv.innerHTML.includes(text)) newsDiv.innerHTML = ''; }, 5000);
-    }
+    const toast = document.createElement('div');
+    toast.className = `news-toast ${type}`;
+    toast.innerHTML = `<span>${type === 'positive' ? '📢' : '⚠️'}</span> ${text}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
 }
 
 function applyNewsEffect(news) {
@@ -3115,10 +2929,6 @@ function updatePricesWithEffects() {
         newPrice = Math.round(newPrice * 100) / 100;
         if (currentPrices[asset.id] !== newPrice) {
             updatePriceHistory(asset.id, newPrice);
-            // анимация вспышки на карточке
-            const card = document.querySelector(`.invest-asset-card[data-id="${asset.id}"]`);
-            if (card) card.classList.add('price-flash');
-            setTimeout(() => card?.classList.remove('price-flash'), 500);
         }
         currentPrices[asset.id] = newPrice;
     }
@@ -3253,18 +3063,11 @@ function drawLineChart(canvas, candles) {
     ctx.fill();
 }
 
-// Сортировка: owned всегда сверху, затем критерий (кроме random – там owned просто вперемешку, но первые owned)
 function getSortedAssets() {
     let filtered = [...assets];
-    let ownedFirst = (a, b) => {
-        const ownA = userInvestments[a.id] ? 1 : 0;
-        const ownB = userInvestments[b.id] ? 1 : 0;
-        return ownB - ownA;
-    };
     if (currentFilter === 'random') {
         if (!randomOrder.length) randomOrder = [...filtered].sort(() => Math.random() - 0.5);
         let sorted = [...randomOrder];
-        // переместить owned в начало без изменения порядка между owned
         let owned = sorted.filter(a => userInvestments[a.id]);
         let notOwned = sorted.filter(a => !userInvestments[a.id]);
         return [...owned, ...notOwned];
@@ -3279,12 +3082,11 @@ function getSortedAssets() {
     } else if (currentFilter === 'price') {
         sorted.sort((a,b) => (currentPrices[b.id] || 0) - (currentPrices[a.id] || 0));
     }
-    // ставим owned сверху
+    // owned first
     sorted.sort((a,b) => {
         const ownA = userInvestments[a.id] ? 1 : 0;
         const ownB = userInvestments[b.id] ? 1 : 0;
-        if (ownA !== ownB) return ownB - ownA;
-        return 0;
+        return ownB - ownA;
     });
     return sorted;
 }
@@ -3294,13 +3096,6 @@ let assetElements = {};
 function renderAssetsList(keepFocus = false) {
     const container = document.getElementById('investAssetsList');
     if (!container) return;
-    if (keepFocus && document.activeElement && document.activeElement.id && document.activeElement.id.startsWith('qty_')) {
-        focusedInputId = document.activeElement.id;
-    }
-    for (let asset of assets) {
-        const input = document.getElementById(`qty_${asset.id}`);
-        if (input) assetElements[asset.id] = input.value;
-    }
     const sorted = getSortedAssets();
     container.innerHTML = sorted.map(asset => {
         const price = currentPrices[asset.id] ? currentPrices[asset.id].toFixed(2) : '...';
@@ -3312,7 +3107,6 @@ function renderAssetsList(keepFocus = false) {
         const profitClass = profit > 0 ? 'profit-positive' : (profit < 0 ? 'profit-negative' : '');
         const changeFromBase = ((currentPrices[asset.id] - asset.basePrice) / asset.basePrice * 100).toFixed(1);
         const changeClass = parseFloat(changeFromBase) >= 0 ? 'profit-positive' : 'profit-negative';
-        
         let trendArrow = '';
         let trendClass = '';
         if (priceHistory[asset.id] && priceHistory[asset.id].length >= 2) {
@@ -3324,9 +3118,6 @@ function renderAssetsList(keepFocus = false) {
         } else trendArrow = '🔄';
         const graphId = `chart_${asset.id}`;
         setTimeout(() => drawChart(graphId, asset.id), 10);
-        
-        const pendingQty = pendingBuy[asset.id] || 0;
-        const totalCost = pendingQty * (currentPrices[asset.id] || 0);
         return `
             <div class="invest-asset-card" data-id="${asset.id}">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
@@ -3354,33 +3145,20 @@ function renderAssetsList(keepFocus = false) {
                     <button class="sell-btn" data-id="${asset.id}" style="background: #ef4444; border: none; border-radius: 60px; padding: 6px 20px; color: white; font-weight: 600;">Продать всё</button>
                 </div>
                 ` : ''}
-                <div style="display: flex; gap: 6px; margin-top: 12px; align-items: center; flex-wrap: wrap;">
-                    <button class="quick-add" data-id="${asset.id}" data-delta="1" style="background: #3b82f6; border: none; border-radius: 40px; padding: 6px 12px; color: white;">+1</button>
-                    <button class="quick-add" data-id="${asset.id}" data-delta="3" style="background: #3b82f6; border: none; border-radius: 40px; padding: 6px 12px; color: white;">+3</button>
-                    <button class="quick-add" data-id="${asset.id}" data-delta="5" style="background: #3b82f6; border: none; border-radius: 40px; padding: 6px 12px; color: white;">+5</button>
-                    <input type="number" id="qty_${asset.id}" placeholder="Кол-во" min="1" step="1" class="invest-input" style="flex:1; min-width: 70px; padding: 6px; border-radius: 40px;" value="${pendingQty || ''}">
-                    <div class="preview-purchase" style="flex:1; text-align: center;">💰 ${totalCost.toFixed(2)} ₽</div>
+                <div style="display: flex; gap: 8px; margin-top: 12px; align-items: center;">
+                    <button class="quick-buy" data-id="${asset.id}" data-qty="1" style="background: #3b82f6; border: none; border-radius: 40px; padding: 6px 12px; color: white;">+1</button>
+                    <button class="quick-buy" data-id="${asset.id}" data-qty="3" style="background: #3b82f6; border: none; border-radius: 40px; padding: 6px 12px; color: white;">+3</button>
+                    <button class="quick-buy" data-id="${asset.id}" data-qty="5" style="background: #3b82f6; border: none; border-radius: 40px; padding: 6px 12px; color: white;">+5</button>
+                    <input type="number" id="qty_${asset.id}" placeholder="Кол-во" min="1" step="1" class="invest-input" style="flex:2; padding: 8px; border-radius: 40px;" value="">
                     <button class="buy-btn" data-id="${asset.id}" style="background: #10b981; border: none; border-radius: 40px; padding: 6px 16px; color: white;">Купить</button>
                 </div>
             </div>
         `;
     }).join('');
     
-    for (let asset of assets) {
-        const input = document.getElementById(`qty_${asset.id}`);
-        if (input && assetElements[asset.id] !== undefined && !pendingBuy[asset.id]) input.value = assetElements[asset.id];
-        else if (input && pendingBuy[asset.id]) input.value = pendingBuy[asset.id];
-    }
-    if (keepFocus && focusedInputId) {
-        const focusedInput = document.getElementById(focusedInputId);
-        if (focusedInput) focusedInput.focus();
-        focusedInputId = null;
-    }
-    
-    // Обработчики
-    document.querySelectorAll('.quick-add').forEach(btn => {
-        btn.removeEventListener('click', quickAddHandler);
-        btn.addEventListener('click', quickAddHandler);
+    document.querySelectorAll('.quick-buy').forEach(btn => {
+        btn.removeEventListener('click', quickBuyHandler);
+        btn.addEventListener('click', quickBuyHandler);
     });
     document.querySelectorAll('.buy-btn').forEach(btn => {
         btn.removeEventListener('click', buyHandler);
@@ -3391,34 +3169,28 @@ function renderAssetsList(keepFocus = false) {
         btn.addEventListener('click', sellHandler);
     });
     
-    function quickAddHandler(e) {
+    function quickBuyHandler(e) {
         const id = e.currentTarget.dataset.id;
-        const delta = parseInt(e.currentTarget.dataset.delta);
-        if (isNaN(delta)) return;
-        const currentQty = pendingBuy[id] || 0;
-        const newQty = currentQty + delta;
-        if (newQty < 0) return;
-        pendingBuy[id] = newQty;
-        // обновить поле ввода и превью
-        const input = document.getElementById(`qty_${id}`);
-        if (input) input.value = newQty;
-        renderAssetsList(true);
-    }
-    
-    function buyHandler(e) {
-        const id = e.currentTarget.dataset.id;
-        let qty = pendingBuy[id] || 0;
-        const inputQty = document.getElementById(`qty_${id}`);
-        if (inputQty && !qty) qty = parseInt(inputQty.value);
-        if (isNaN(qty) || qty <= 0) { alert('Введите количество (≥1)'); return; }
+        const qty = parseInt(e.currentTarget.dataset.qty);
+        if (isNaN(qty) || qty <= 0) return;
         const price = currentPrices[id];
         if (!price) { alert('Цена не загружена'); return; }
         const cost = qty * price;
         if (cost > investBalance) { alert(`Недостаточно средств. Нужно ${cost.toFixed(2)} ₽`); return; }
         buyAsset(id, qty);
-        delete pendingBuy[id];
-        if (inputQty) inputQty.value = '';
-        renderAssetsList(true);
+    }
+    
+    function buyHandler(e) {
+        const id = e.currentTarget.dataset.id;
+        const input = document.getElementById(`qty_${id}`);
+        let qty = parseInt(input.value);
+        if (isNaN(qty) || qty <= 0) { alert('Введите целое количество (≥1)'); return; }
+        const price = currentPrices[id];
+        if (!price) { alert('Цена не загружена'); return; }
+        const cost = qty * price;
+        if (cost > investBalance) { alert(`Недостаточно средств. Нужно ${cost.toFixed(2)} ₽`); return; }
+        buyAsset(id, qty);
+        input.value = '';
     }
     
     function sellHandler(e) {
@@ -3444,7 +3216,7 @@ function buyAsset(assetId, qty) {
     updateBalanceDisplay();
     saveGameState();
     renderAssetsList(true);
-    showNewsToast(`✅ Куплено ${qty} акций ${assets.find(a=>a.id===assetId).displayName}`, 'positive');
+    showNewsToast(`✅ Куплено ${qty} ${assets.find(a=>a.id===assetId).displayName}`, 'positive');
 }
 
 function sellAllAsset(assetId) {
@@ -3466,7 +3238,7 @@ function sellAllAsset(assetId) {
     updateBalanceDisplay();
     saveGameState();
     renderAssetsList(true);
-    showNewsToast(`📉 Проданы все акции ${assets.find(a=>a.id===assetId).displayName}`, 'negative');
+    showNewsToast(`📉 Проданы все ${assets.find(a=>a.id===assetId).displayName}`, 'negative');
 }
 
 function sellAllAssets() {
@@ -3497,23 +3269,10 @@ function payDividends() {
     }
 }
 
-function calculateDailyReturn() {
-    const startCapital = parseFloat(localStorage.getItem('investorStartCapital')) || 5000;
-    const currentCapital = investBalance + Object.values(userInvestments).reduce((sum, inv) => sum + inv.shares * currentPrices[inv.id], 0);
-    const dailyReturn = ((currentCapital - startCapital) / startCapital) * 100;
-    const returnElem = document.getElementById('investDailyReturn');
-    if (returnElem) {
-        returnElem.innerHTML = `📈 Дневная доходность: ${dailyReturn >= 0 ? '+' : ''}${dailyReturn.toFixed(2)}%`;
-        returnElem.style.color = dailyReturn >= 0 ? '#10b981' : '#ef4444';
-    }
-    localStorage.setItem('investorStartCapital', startCapital); // сохраняем для следующего дня? Можно сбрасывать раз в сутки, но для простоты оставим.
-}
-
 function updateBalanceDisplay() {
     const balanceDiv = document.getElementById('investBalance');
     if (balanceDiv) balanceDiv.innerText = `${investBalance.toFixed(0)} ₽`;
     updateTotalProfit();
-    calculateDailyReturn();
 }
 
 function updateTotalProfit() {
@@ -3534,26 +3293,22 @@ function updateTotalProfit() {
 }
 
 function saveGameState() {
-    localStorage.setItem('investorGame_v3', JSON.stringify({
+    localStorage.setItem('investorGame', JSON.stringify({
         balance: investBalance,
         investments: userInvestments,
-        lastSaveTime: Date.now(),
-        startCapital: localStorage.getItem('investorStartCapital') || 5000
+        lastSaveTime: Date.now()
     }));
 }
 
 function loadGameState() {
-    const saved = localStorage.getItem('investorGame_v3');
+    const saved = localStorage.getItem('investorGame');
     if (saved) {
         try {
             const data = JSON.parse(saved);
             investBalance = data.balance;
             userInvestments = data.investments || {};
             if (investBalance < 0) investBalance = 5000;
-            localStorage.setItem('investorStartCapital', data.startCapital || 5000);
         } catch(e) { }
-    } else {
-        localStorage.setItem('investorStartCapital', '5000');
     }
 }
 
@@ -3627,8 +3382,7 @@ function showEconomicsModal() {
     modal.innerHTML = `
         <div class="modal-learn-card">
             <div class="learn-title">📘 Руководство инвестора</div>
-            <div class="learn-text">• Акции покупаются целыми лотами. Используйте кнопки +1/+3/+5 или введите количество в поле.</div>
-            <div class="learn-text">• Кнопка «Купить» совершает сделку. Вы увидите итоговую стоимость перед покупкой.</div>
+            <div class="learn-text">• Акции покупаются целыми лотами. Используйте кнопки +1/+3/+5 или введите количество в поле и нажмите «Купить».</div>
             <div class="learn-text">• «Продать всё» продаёт все ваши акции разом.</div>
             <div class="learn-text">• Налог 13% на прибыль и комиссия брокера 0.05% удерживаются при продаже.</div>
             <div class="learn-text">• Дивиденды начисляются каждые 2 минуты.</div>
