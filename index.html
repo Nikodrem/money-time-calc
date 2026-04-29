@@ -1091,6 +1091,58 @@ body.dark #lifeLocalTabs .local-tab.active {
     color: white;
 }
         
+    /* Финальные стили Инвестора – без мерцания и смещения */
+#investAssetsList {
+    max-height: 480px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scroll-behavior: smooth;
+}
+.invest-asset-card {
+    background: white;
+    border-radius: 40px;
+    padding: 16px;
+    transition: background 0.3s;
+}
+body.dark .invest-asset-card {
+    background: #1e293b !important;
+}
+.price-value {
+    font-weight: 700;
+    transition: all 0.1s;
+}
+.price-flash {
+    animation: priceFlash 0.3s ease;
+}
+@keyframes priceFlash {
+    0% { background-color: rgba(59,130,246,0); }
+    50% { background-color: rgba(59,130,246,0.3); }
+    100% { background-color: rgba(59,130,246,0); }
+}
+.quick-buy {
+    background: #3b82f6;
+    border: none;
+    border-radius: 40px;
+    padding: 6px 12px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+.quick-buy:active {
+    transform: scale(0.96);
+}
+.sell-btn {
+    background: #ef4444;
+    border: none;
+    border-radius: 60px;
+    padding: 6px 20px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+        
     </style>
 
     <!-- Вкладка 1: События -->
@@ -1121,37 +1173,39 @@ body.dark #lifeLocalTabs .local-tab.active {
     </div>
 
     <!-- Вкладка 3: Инвестор -->
-    <div id="lifeZodiacContent" class="local-content">
-        <div class="life-box">
-            <div class="invest-header">
-                <div class="invest-title">🎮 Инвестиционный симулятор</div>
-                <button id="btnLearnEconomics" class="btn-guide">📘 Руководство</button>
-            </div>
-            <div class="capital-box" style="background:#eef2f6; border-radius:60px; padding:12px 20px; margin-bottom:16px; text-align:center;">
-                <div>💰 Ваш капитал</div>
-                <div style="font-size:28px; font-weight:700;" id="investBalance">5000 ₽</div>
-                <div id="investTotalProfit" style="font-size:12px;"></div>
-            </div>
-            <!-- Фильтры (4 кнопки) -->
-            <div class="filter-bar" style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:12px;">
-                <button class="filter-btn active" data-filter="default">📊 По умолчанию</button>
-                <button class="filter-btn" data-filter="profit">📈 По прибыльности</button>
-                <button class="filter-btn" data-filter="price">💰 По цене</button>
-                <button class="filter-btn" data-filter="random">🎲 Случайно</button>
-            </div>
-            <div style="background:#f8fafc; border-radius:28px; padding:12px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <div style="font-weight:600;">📈 Доступные акции</div>
-                    <button id="sellAllBtn" class="calc-btn" style="background:#ef4444; height:36px; padding:0 16px; font-size:13px;">Продать всё</button>
-                </div>
-                <div id="investAssetsContainer">
-                    <div id="investAssetsList" style="max-height:480px; overflow-y:auto; display:flex; flex-direction:column; gap:12px;"></div>
-                </div>
-                <div style="font-size:11px; text-align:center; margin-top:10px;">Цены обновляются каждые 5 сек. Новости влияют на рынок.</div>
-            </div>
-            <div class="pseudo-science-note">⚠️ Игра не является инвестиционной рекомендацией. Налог 13%, комиссия 0.05%, дивиденды раз в 2 мин.</div>
+<div id="lifeZodiacContent" class="local-content">
+    <div class="life-box">
+        <div class="invest-header">
+            <div class="invest-title">🎮 Инвестиционный симулятор</div>
+            <button id="btnLearnEconomics" class="btn-guide">📘 Руководство</button>
         </div>
+        <div class="capital-box">
+            <div>💰 Ваш капитал</div>
+            <div style="font-size: 28px; font-weight: 700;" id="investBalance">5000 ₽</div>
+            <div id="investTotalProfit" style="font-size: 13px; margin-top: 4px;"></div>
+            <div id="investDailyReturn" style="font-size: 12px;"></div>
+        </div>
+        <!-- 4 фильтра -->
+        <div class="filter-bar">
+            <button class="filter-btn active" data-filter="default">📊 По умолчанию</button>
+            <button class="filter-btn" data-filter="profit">📈 По прибыльности</button>
+            <button class="filter-btn" data-filter="price">💰 По цене</button>
+            <button class="filter-btn" data-filter="random">🎲 Случайно</button>
+        </div>
+        <div style="background: #f8fafc; border-radius: 28px; padding: 12px; margin-top: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="font-weight: 600;">📈 Доступные акции</div>
+                <button id="sellAllBtn" class="sell-btn" style="background: #ef4444; height: 36px; padding: 0 16px; font-size: 13px;">Продать всё</button>
+            </div>
+            <div id="investAssetsContainer">
+                <div id="investAssetsList"></div>
+            </div>
+            <div style="font-size: 11px; text-align: center; margin-top: 10px;">Цены обновляются каждые 5 сек. Новости влияют на рынок.</div>
+            <div id="newsTicker"></div>
+        </div>
+        <div class="pseudo-science-note">⚠️ Налог 13%, комиссия 0.05%, дивиденды раз в 2 мин.</div>
     </div>
+</div>
     
     <!-- Вкладка 4: Обратный отсчёт -->
     <div id="lifeCountdownContent" class="local-content">
@@ -2838,7 +2892,7 @@ body.dark #lifeLocalTabs .local-tab.active {
         }
     }
     
-   // ---------- ИГРА ИНВЕСТОР (исправленная тёмная тема, старый дизайн, фильтры) ----------
+   // ---------- ИГРА ИНВЕСТОР (ФИНАЛЬНАЯ: БЕЗ СМЕЩЕНИЯ, БЕЗ ПОЛЯ ВВОДА) ----------
 let investBalance = 5000;
 let userInvestments = {};
 let currentPrices = {};
@@ -2846,7 +2900,6 @@ let priceHistory = {};
 let candlestickData = {};
 let currentFilter = 'default';
 let randomOrder = [];
-let chartMode = 'candles';
 let priceRefreshInterval = null;
 let newsInterval = null;
 let dividendInterval = null;
@@ -2869,70 +2922,49 @@ const assets = [
     { id: 'yandex', displayName: 'Yandex', ticker: 'YNDX', emoji: '🔎', sector: 'Интернет', basePrice: 310, dividendYield: 0.0 }
 ];
 
-const newsEvents = [
-    { text: "🏦 Центробанк повысил ставку", effect: { sector: "all", change: -0.03 }, type: "negative" },
-    { text: "🏭 Нефть подорожала на 5%", effect: { sector: "Энергия", change: 0.04 }, type: "positive" },
-    { text: "📉 Падение рынка из-за геополитики", effect: { sector: "all", change: -0.02 }, type: "negative" },
-    { text: "🚀 SpaceX запустила ракету", effect: { sector: "Технологии", change: 0.02 }, type: "positive" },
-    { text: "💰 Apple выпустила iPhone", effect: { ids: ["aapl"], change: 0.05 }, type: "positive" },
+const newsEvents = [ /* кратко */ 
+    { text: "🏦 Ставка ЦБ повышена", effect: { sector: "all", change: -0.03 }, type: "negative" },
+    { text: "🏭 Нефть подорожала", effect: { sector: "Энергия", change: 0.04 }, type: "positive" },
+    { text: "📉 Геополитика давит на рынок", effect: { sector: "all", change: -0.02 }, type: "negative" },
+    { text: "🍎 Apple выпустила iPhone", effect: { ids: ["aapl"], change: 0.05 }, type: "positive" },
     { text: "⚡ Tesla отзывает авто", effect: { ids: ["tsla"], change: -0.04 }, type: "negative" },
-    { text: "📊 Сбер отчитался о прибыли", effect: { ids: ["sber"], change: 0.03 }, type: "positive" },
-    { text: "🔥 Газпром приостанавливает поставки", effect: { ids: ["gazp"], change: -0.06 }, type: "negative" },
+    { text: "📊 Сбер отчитался о рекорде", effect: { ids: ["sber"], change: 0.03 }, type: "positive" },
+    { text: "🔥 Газпром приостановил поставки", effect: { ids: ["gazp"], change: -0.06 }, type: "negative" },
     { text: "🛢️ ОПЕК+ сократила добычу", effect: { sector: "Энергия", change: 0.03 }, type: "positive" },
-    { text: "🎮 NVIDIA анонсирует новинки", effect: { ids: ["nvda"], change: 0.06 }, type: "positive" },
-    { text: "📺 Netflix потерял подписчиков", effect: { ids: ["nflx"], change: -0.05 }, type: "negative" },
-    { text: "💻 Intel задерживает чипы", effect: { ids: ["intc"], change: -0.03 }, type: "negative" },
-    { text: "🌐 Мета открывает метавселенную", effect: { ids: ["meta"], change: 0.04 }, type: "positive" },
-    { text: "⚙️ AMD перегоняет Intel", effect: { ids: ["amd"], change: 0.035 }, type: "positive" },
-    { text: "🥇 Золото подешевело", effect: { ids: ["gld"], change: -0.02 }, type: "negative" },
-    { text: "🔎 Яндекс создаёт конкурента ChatGPT", effect: { ids: ["yandex"], change: 0.045 }, type: "positive" },
-    { text: "☕ Microsoft представляет ИИ-чип", effect: { ids: ["msft"], change: 0.04 }, type: "positive" },
-    { text: "📦 Amazon расширяет доставку", effect: { ids: ["amzn"], change: 0.03 }, type: "positive" }
+    { text: "🎮 NVIDIA анонсирует новинки", effect: { ids: ["nvda"], change: 0.06 }, type: "positive" }
 ];
 let activeNewsEffects = [];
 
-function showNewsToast(text, type) {
-    const toast = document.createElement('div');
-    toast.className = `news-toast ${type}`;
-    toast.innerHTML = `<span>${type === 'positive' ? '📢' : '⚠️'}</span> ${text}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 5000);
+function showNews(text, type) {
+    const div = document.getElementById('newsTicker');
+    if (div) {
+        div.innerHTML = `<span style="color:${type === 'positive' ? '#10b981' : '#ef4444'};">${type === 'positive' ? '📈' : '📉'} ${text}</span>`;
+        setTimeout(() => { if (div.innerHTML.includes(text)) div.innerHTML = ''; }, 5000);
+    }
 }
-
-function applyNewsEffect(news) {
-    activeNewsEffects.push({ effect: news.effect, expires: Date.now() + 60000 });
-    showNewsToast(news.text, news.type);
-    updatePricesWithEffects();
-}
-
-function seededRandom(seed) {
-    const x = Math.sin(seed) * 10000;
-    return x - Math.floor(x);
-}
+function seededRandom(seed) { const x = Math.sin(seed) * 10000; return x - Math.floor(x); }
 
 function updatePricesWithEffects() {
     const now = Date.now();
     activeNewsEffects = activeNewsEffects.filter(e => e.expires > now);
     for (let asset of assets) {
-        let oldPrice = currentPrices[asset.id] || asset.basePrice;
-        let change = 0;
-        let r = seededRandom(now / 5000 + asset.id.charCodeAt(0));
-        change += (r - 0.5) * 0.015;
-        for (let eff of activeNewsEffects) {
-            const e = eff.effect;
-            if (e.sector === 'all' || e.sector === asset.sector || (e.ids && e.ids.includes(asset.id))) {
-                change += e.change;
-            }
+        let old = currentPrices[asset.id] || asset.basePrice;
+        let change = (seededRandom(now/5000 + asset.id.charCodeAt(0)) - 0.5) * 0.015;
+        for (let e of activeNewsEffects) {
+            if (e.effect.sector === 'all' || e.effect.sector === asset.sector || (e.effect.ids && e.effect.ids.includes(asset.id)))
+                change += e.effect.change;
         }
-        let newPrice = oldPrice * (1 + change);
-        newPrice = Math.max(1, newPrice);
+        let newPrice = Math.max(1, old * (1 + change));
         newPrice = Math.round(newPrice * 100) / 100;
         if (currentPrices[asset.id] !== newPrice) {
             updatePriceHistory(asset.id, newPrice);
+            const card = document.querySelector(`.invest-asset-card[data-id="${asset.id}"]`);
+            if (card) card.classList.add('price-flash');
+            setTimeout(() => card?.classList.remove('price-flash'), 300);
         }
         currentPrices[asset.id] = newPrice;
     }
-    renderAssetsList(true);
+    updatePricesUI();  // обновляем только цены, без перерисовки списка
     updateTotalProfit();
 }
 
@@ -2942,483 +2974,329 @@ function updatePriceHistory(assetId, newPrice) {
     if (priceHistory[assetId].length > 30) priceHistory[assetId].shift();
     updateCandlestick(assetId, newPrice);
 }
-
 function updateCandlestick(assetId, newPrice) {
-    if (!candlestickData[assetId]) {
-        candlestickData[assetId] = {
-            candles: [],
-            currentOpen: newPrice,
-            currentHigh: newPrice,
-            currentLow: newPrice,
-            currentClose: newPrice,
-            lastTime: Date.now()
-        };
-    }
-    const data = candlestickData[assetId];
+    if (!candlestickData[assetId]) candlestickData[assetId] = { candles: [], currentOpen: newPrice, currentHigh: newPrice, currentLow: newPrice, currentClose: newPrice, lastTime: Date.now() };
+    const d = candlestickData[assetId];
     const now = Date.now();
-    const interval = 5000;
-    if (now - data.lastTime >= interval) {
-        data.currentClose = newPrice;
-        data.candles.push({
-            open: data.currentOpen,
-            high: data.currentHigh,
-            low: data.currentLow,
-            close: data.currentClose,
-            time: data.lastTime
-        });
-        if (data.candles.length > 20) data.candles.shift();
-        data.currentOpen = newPrice;
-        data.currentHigh = newPrice;
-        data.currentLow = newPrice;
-        data.currentClose = newPrice;
-        data.lastTime = now;
+    if (now - d.lastTime >= 5000) {
+        d.candles.push({ open: d.currentOpen, high: d.currentHigh, low: d.currentLow, close: newPrice, time: d.lastTime });
+        if (d.candles.length > 20) d.candles.shift();
+        d.currentOpen = newPrice; d.currentHigh = newPrice; d.currentLow = newPrice; d.currentClose = newPrice; d.lastTime = now;
     } else {
-        data.currentHigh = Math.max(data.currentHigh, newPrice);
-        data.currentLow = Math.min(data.currentLow, newPrice);
-        data.currentClose = newPrice;
+        d.currentHigh = Math.max(d.currentHigh, newPrice);
+        d.currentLow = Math.min(d.currentLow, newPrice);
+        d.currentClose = newPrice;
     }
 }
-
-function drawChart(canvasId, assetId) {
-    const canvas = document.getElementById(canvasId);
+function drawChart(assetId) {
+    const canvas = document.getElementById(`chart_${assetId}`);
     if (!canvas) return;
-    const data = candlestickData[assetId];
-    if (!data || data.candles.length === 0) return;
-    const candles = data.candles;
-    if (chartMode === 'candles') drawCandlestickChart(canvas, candles);
-    else drawLineChart(canvas, candles);
-}
-
-function drawCandlestickChart(canvas, candles) {
+    const d = candlestickData[assetId];
+    if (!d || !d.candles.length) return;
+    const candles = d.candles;
     const ctx = canvas.getContext('2d');
     const w = canvas.clientWidth, h = canvas.clientHeight;
     canvas.width = w; canvas.height = h;
-    ctx.clearRect(0, 0, w, h);
-    if (candles.length === 0) return;
-    const candleWidth = (w - 40) / candles.length;
-    const minPrice = Math.min(...candles.map(c => c.low));
-    const maxPrice = Math.max(...candles.map(c => c.high));
-    const range = maxPrice - minPrice || 1;
-    const yScale = (h - 40) / range;
-    const offsetX = 20;
-    const offsetY = 20;
-    for (let i = 0; i < candles.length; i++) {
-        const c = candles[i];
-        const x = offsetX + i * candleWidth;
-        const openY = offsetY + (maxPrice - c.open) * yScale;
-        const closeY = offsetY + (maxPrice - c.close) * yScale;
-        const highY = offsetY + (maxPrice - c.high) * yScale;
-        const lowY = offsetY + (maxPrice - c.low) * yScale;
-        ctx.fillStyle = c.close >= c.open ? '#10b981' : '#ef4444';
-        ctx.fillRect(x + candleWidth * 0.2, Math.min(openY, closeY), candleWidth * 0.6, Math.abs(closeY - openY) || 1);
+    ctx.clearRect(0,0,w,h);
+    const candleWidth = (w-40)/candles.length;
+    const minP = Math.min(...candles.map(c=>c.low)), maxP = Math.max(...candles.map(c=>c.high));
+    const range = maxP-minP||1;
+    const yScale = (h-40)/range;
+    for(let i=0;i<candles.length;i++){
+        const c=candles[i];
+        const x=20+i*candleWidth;
+        const openY=20+(maxP-c.open)*yScale;
+        const closeY=20+(maxP-c.close)*yScale;
+        const highY=20+(maxP-c.high)*yScale;
+        const lowY=20+(maxP-c.low)*yScale;
+        ctx.fillStyle = c.close>=c.open ? '#10b981' : '#ef4444';
+        ctx.fillRect(x+candleWidth*0.2, Math.min(openY,closeY), candleWidth*0.6, Math.abs(closeY-openY)||1);
         ctx.fillStyle = '#94a3b8';
-        ctx.fillRect(x + candleWidth * 0.45, highY, 2, lowY - highY);
-    }
-    if (candles.length >= 5) {
-        ctx.beginPath();
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 1.5;
-        let first = true;
-        for (let i = 4; i < candles.length; i++) {
-            let sum = 0;
-            for (let j = i-4; j <= i; j++) sum += candles[j].close;
-            const sma = sum / 5;
-            const x = offsetX + i * candleWidth + candleWidth/2;
-            const y = offsetY + (maxPrice - sma) * yScale;
-            if (first) { ctx.moveTo(x, y); first = false; }
-            else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
+        ctx.fillRect(x+candleWidth*0.45, highY, 2, lowY-highY);
     }
 }
 
-function drawLineChart(canvas, candles) {
-    const ctx = canvas.getContext('2d');
-    const w = canvas.clientWidth, h = canvas.clientHeight;
-    canvas.width = w; canvas.height = h;
-    ctx.clearRect(0, 0, w, h);
-    if (candles.length < 2) return;
-    const prices = candles.map(c => c.close);
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    const range = max - min || 1;
-    const step = (w - 40) / (prices.length - 1);
-    const offsetX = 20;
-    const offsetY = 20;
-    const yScale = (h - 40) / range;
-    ctx.beginPath();
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 2;
-    for (let i = 0; i < prices.length; i++) {
-        const x = offsetX + i * step;
-        const y = offsetY + (max - prices[i]) * yScale;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+// ОБНОВЛЕНИЕ ТОЛЬКО ЦЕН (без перерисовки всего списка)
+function updatePricesUI() {
+    for (let asset of assets) {
+        const priceSpan = document.querySelector(`.asset-price-${asset.id}`);
+        if (priceSpan) priceSpan.innerText = currentPrices[asset.id].toFixed(2);
+        const changeSpan = document.querySelector(`.asset-change-${asset.id}`);
+        if (changeSpan) {
+            const change = ((currentPrices[asset.id] - asset.basePrice)/asset.basePrice*100).toFixed(1);
+            changeSpan.innerText = `📊 ${change}%`;
+            changeSpan.className = `asset-change-${asset.id} ` + (parseFloat(change) >= 0 ? 'profit-positive' : 'profit-negative');
+        }
+        // обновляем прибыль в портфеле, если есть акции
+        const profitSpan = document.querySelector(`.profit-display-${asset.id}`);
+        if (profitSpan && userInvestments[asset.id]) {
+            const inv = userInvestments[asset.id];
+            const profit = (inv.shares * (currentPrices[asset.id] - inv.buyPrice)).toFixed(2);
+            const percent = ((currentPrices[asset.id]/inv.buyPrice-1)*100).toFixed(2);
+            profitSpan.innerHTML = `💰 Прибыль: ${profit} ₽ (${percent}%)`;
+            profitSpan.className = `profit-display-${asset.id} ` + (profit>=0 ? 'profit-positive' : 'profit-negative');
+        }
+        drawChart(asset.id);
     }
-    ctx.stroke();
-    ctx.lineTo(offsetX + (prices.length-1)*step, h - offsetY);
-    ctx.lineTo(offsetX, h - offsetY);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(59,130,246,0.1)';
-    ctx.fill();
+    // обновляем баланс
+    document.getElementById('investBalance').innerText = `${investBalance.toFixed(0)} ₽`;
 }
 
 function getSortedAssets() {
     let filtered = [...assets];
     if (currentFilter === 'random') {
-        if (!randomOrder.length) randomOrder = [...filtered].sort(() => Math.random() - 0.5);
-        let sorted = [...randomOrder];
-        let owned = sorted.filter(a => userInvestments[a.id]);
-        let notOwned = sorted.filter(a => !userInvestments[a.id]);
+        if (!randomOrder.length) randomOrder = [...filtered].sort(()=>Math.random()-0.5);
+        let owned = randomOrder.filter(a=>userInvestments[a.id]);
+        let notOwned = randomOrder.filter(a=>!userInvestments[a.id]);
         return [...owned, ...notOwned];
     }
     let sorted = [...filtered];
-    if (currentFilter === 'profit') {
-        sorted.sort((a,b) => {
-            const profitA = (currentPrices[a.id] - a.basePrice) / a.basePrice;
-            const profitB = (currentPrices[b.id] - b.basePrice) / b.basePrice;
-            return profitB - profitA;
-        });
-    } else if (currentFilter === 'price') {
-        sorted.sort((a,b) => (currentPrices[b.id] || 0) - (currentPrices[a.id] || 0));
-    }
-    // owned first
-    sorted.sort((a,b) => {
-        const ownA = userInvestments[a.id] ? 1 : 0;
-        const ownB = userInvestments[b.id] ? 1 : 0;
-        return ownB - ownA;
-    });
+    if(currentFilter==='profit') sorted.sort((a,b)=>((currentPrices[b.id]-b.basePrice)/b.basePrice) - ((currentPrices[a.id]-a.basePrice)/a.basePrice));
+    else if(currentFilter==='price') sorted.sort((a,b)=>(currentPrices[b.id]||0)-(currentPrices[a.id]||0));
+    // owned сверху
+    sorted.sort((a,b)=>(userInvestments[b.id]?1:0)-(userInvestments[a.id]?1:0));
     return sorted;
 }
 
-let assetElements = {};
-
-function renderAssetsList(keepFocus = false) {
+function renderFullList() {
     const container = document.getElementById('investAssetsList');
     if (!container) return;
     const sorted = getSortedAssets();
     container.innerHTML = sorted.map(asset => {
-        const price = currentPrices[asset.id] ? currentPrices[asset.id].toFixed(2) : '...';
-        const investment = userInvestments[asset.id];
-        const shares = investment ? investment.shares : 0;
-        const avgPrice = investment ? investment.buyPrice : 0;
-        const profit = shares > 0 ? (shares * (currentPrices[asset.id] - avgPrice)).toFixed(2) : 0;
-        const profitPercent = shares > 0 && avgPrice > 0 ? ((currentPrices[asset.id] / avgPrice - 1) * 100).toFixed(2) : 0;
-        const profitClass = profit > 0 ? 'profit-positive' : (profit < 0 ? 'profit-negative' : '');
-        const changeFromBase = ((currentPrices[asset.id] - asset.basePrice) / asset.basePrice * 100).toFixed(1);
-        const changeClass = parseFloat(changeFromBase) >= 0 ? 'profit-positive' : 'profit-negative';
-        let trendArrow = '';
-        let trendClass = '';
-        if (priceHistory[asset.id] && priceHistory[asset.id].length >= 2) {
-            const old = priceHistory[asset.id][priceHistory[asset.id].length - 2];
-            const newP = priceHistory[asset.id][priceHistory[asset.id].length - 1];
-            if (newP > old) { trendArrow = '📈'; trendClass = 'profit-positive'; }
-            else if (newP < old) { trendArrow = '📉'; trendClass = 'profit-negative'; }
-            else trendArrow = '➖';
-        } else trendArrow = '🔄';
-        const graphId = `chart_${asset.id}`;
-        setTimeout(() => drawChart(graphId, asset.id), 10);
+        const inv = userInvestments[asset.id];
+        const shares = inv ? inv.shares : 0;
+        const avgPrice = inv ? inv.buyPrice : 0;
+        const profit = shares ? (shares * (currentPrices[asset.id] - avgPrice)).toFixed(2) : 0;
+        const profitPercent = shares && avgPrice ? ((currentPrices[asset.id]/avgPrice-1)*100).toFixed(2) : 0;
+        const profitClass = profit>0?'profit-positive':'profit-negative';
+        const changeFromBase = ((currentPrices[asset.id] - asset.basePrice)/asset.basePrice*100).toFixed(1);
+        const emoji = asset.emoji;
+        const price = currentPrices[asset.id].toFixed(2);
         return `
             <div class="invest-asset-card" data-id="${asset.id}">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="font-size: 28px;">${asset.emoji}</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="font-size:28px;">${emoji}</div>
                         <div>
                             <div class="invest-asset-name">${asset.displayName}</div>
-                            <div style="font-size: 11px; opacity: 0.7;">${asset.sector}</div>
-                            <div style="font-size: 11px; ${changeClass}">📊 ${changeFromBase}% с начала</div>
+                            <div style="font-size:11px;opacity:0.7;">${asset.sector}</div>
+                            <div class="asset-change-${asset.id} ${parseFloat(changeFromBase)>=0?'profit-positive':'profit-negative'}" style="font-size:11px;">📊 ${changeFromBase}%</div>
                         </div>
                     </div>
-                    <div style="text-align: right;">
-                        <div class="invest-asset-price">${price} ₽</div>
-                        <div style="font-size: 12px;">за 1 шт.</div>
+                    <div style="text-align:right;">
+                        <div class="asset-price-${asset.id}" style="font-size:18px;font-weight:700;">${price} ₽</div>
+                        <div style="font-size:12px;">за 1 шт.</div>
                     </div>
                 </div>
-                <canvas id="${graphId}" class="candlestick-canvas" width="400" height="120"></canvas>
-                <div style="display: flex; justify-content: space-between; margin-top: 4px;">
-                    <span class="${trendClass}" style="font-size: 13px;">${trendArrow} Тренд</span>
-                    ${shares > 0 ? `<span style="font-size: 12px;">📊 ${shares} шт.</span>` : ''}
+                <canvas id="chart_${asset.id}" class="candlestick-canvas" width="400" height="120"></canvas>
+                <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                    <span>🔄 Тренд</span>
+                    ${shares ? `<span>📊 ${shares} шт.</span>` : ''}
                 </div>
-                ${shares > 0 ? `
-                <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <div style="font-size: 13px; ${profitClass}">💰 Прибыль: ${profit} ₽ (${profitPercent}%)</div>
-                    <button class="sell-btn" data-id="${asset.id}" style="background: #ef4444; border: none; border-radius: 60px; padding: 6px 20px; color: white; font-weight: 600;">Продать всё</button>
+                ${shares ? `
+                <div style="margin-top:8px;padding-top:6px;border-top:1px solid rgba(0,0,0,0.1);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                    <div class="profit-display-${asset.id} ${profitClass}" style="font-size:13px;">💰 Прибыль: ${profit} ₽ (${profitPercent}%)</div>
+                    <button class="sell-btn" data-id="${asset.id}" style="background:#ef4444;border:none;border-radius:60px;padding:6px 20px;color:white;">Продать всё</button>
                 </div>
                 ` : ''}
-                <div style="display: flex; gap: 8px; margin-top: 12px; align-items: center;">
-                    <button class="quick-buy" data-id="${asset.id}" data-qty="1" style="background: #3b82f6; border: none; border-radius: 40px; padding: 6px 12px; color: white;">+1</button>
-                    <button class="quick-buy" data-id="${asset.id}" data-qty="3" style="background: #3b82f6; border: none; border-radius: 40px; padding: 6px 12px; color: white;">+3</button>
-                    <button class="quick-buy" data-id="${asset.id}" data-qty="5" style="background: #3b82f6; border: none; border-radius: 40px; padding: 6px 12px; color: white;">+5</button>
-                    <input type="number" id="qty_${asset.id}" placeholder="Кол-во" min="1" step="1" class="invest-input" style="flex:2; padding: 8px; border-radius: 40px;" value="">
-                    <button class="buy-btn" data-id="${asset.id}" style="background: #10b981; border: none; border-radius: 40px; padding: 6px 16px; color: white;">Купить</button>
+                <div style="display:flex;gap:8px;margin-top:12px;align-items:center;justify-content:center;">
+                    <button class="quick-buy" data-id="${asset.id}" data-qty="1" style="background:#3b82f6;">+1</button>
+                    <button class="quick-buy" data-id="${asset.id}" data-qty="3" style="background:#3b82f6;">+3</button>
+                    <button class="quick-buy" data-id="${asset.id}" data-qty="5" style="background:#3b82f6;">+5</button>
                 </div>
             </div>
         `;
     }).join('');
-    
+    // после отрисовки прорисовываем все графики
+    for (let a of assets) drawChart(a.id);
+    attachEventHandlers();
+}
+
+function attachEventHandlers() {
     document.querySelectorAll('.quick-buy').forEach(btn => {
         btn.removeEventListener('click', quickBuyHandler);
         btn.addEventListener('click', quickBuyHandler);
-    });
-    document.querySelectorAll('.buy-btn').forEach(btn => {
-        btn.removeEventListener('click', buyHandler);
-        btn.addEventListener('click', buyHandler);
     });
     document.querySelectorAll('.sell-btn').forEach(btn => {
         btn.removeEventListener('click', sellHandler);
         btn.addEventListener('click', sellHandler);
     });
-    
-    function quickBuyHandler(e) {
-        const id = e.currentTarget.dataset.id;
-        const qty = parseInt(e.currentTarget.dataset.qty);
-        if (isNaN(qty) || qty <= 0) return;
-        const price = currentPrices[id];
-        if (!price) { alert('Цена не загружена'); return; }
-        const cost = qty * price;
-        if (cost > investBalance) { alert(`Недостаточно средств. Нужно ${cost.toFixed(2)} ₽`); return; }
-        buyAsset(id, qty);
-    }
-    
-    function buyHandler(e) {
-        const id = e.currentTarget.dataset.id;
-        const input = document.getElementById(`qty_${id}`);
-        let qty = parseInt(input.value);
-        if (isNaN(qty) || qty <= 0) { alert('Введите целое количество (≥1)'); return; }
-        const price = currentPrices[id];
-        if (!price) { alert('Цена не загружена'); return; }
-        const cost = qty * price;
-        if (cost > investBalance) { alert(`Недостаточно средств. Нужно ${cost.toFixed(2)} ₽`); return; }
-        buyAsset(id, qty);
-        input.value = '';
-    }
-    
-    function sellHandler(e) {
-        const id = e.currentTarget.dataset.id;
-        if (userInvestments[id]) sellAllAsset(id);
-    }
 }
-
-function buyAsset(assetId, qty) {
-    const price = currentPrices[assetId];
-    if (!price) { alert('Цена не загружена'); return; }
+function quickBuyHandler(e) {
+    const id = e.currentTarget.dataset.id;
+    const qty = parseInt(e.currentTarget.dataset.qty);
+    const price = currentPrices[id];
+    if (!price) return;
     const cost = qty * price;
-    if (cost > investBalance) { alert('Недостаточно средств'); return; }
-    if (userInvestments[assetId]) {
-        const old = userInvestments[assetId];
+    if (cost > investBalance) { alert(`Недостаточно средств. Нужно ${cost.toFixed(2)} ₽`); return; }
+    if (userInvestments[id]) {
+        const old = userInvestments[id];
         const newShares = old.shares + qty;
         const newAvg = (old.shares * old.buyPrice + cost) / newShares;
-        userInvestments[assetId] = { shares: newShares, buyPrice: newAvg };
+        userInvestments[id] = { shares: newShares, buyPrice: newAvg };
     } else {
-        userInvestments[assetId] = { shares: qty, buyPrice: price };
+        userInvestments[id] = { shares: qty, buyPrice: price };
     }
     investBalance -= cost;
     updateBalanceDisplay();
     saveGameState();
-    renderAssetsList(true);
-    showNewsToast(`✅ Куплено ${qty} ${assets.find(a=>a.id===assetId).displayName}`, 'positive');
+    renderFullList();  // перерисовываем, чтобы обновить портфель и прибыль
+    showNews(`✅ Куплено ${qty} акций ${assets.find(a=>a.id===id).displayName}`, 'positive');
 }
-
-function sellAllAsset(assetId) {
-    const inv = userInvestments[assetId];
+function sellHandler(e) {
+    const id = e.currentTarget.dataset.id;
+    const inv = userInvestments[id];
     if (!inv) return;
-    const currentPrice = currentPrices[assetId];
-    if (!currentPrice) { alert('Цена не загружена'); return; }
-    const revenue = inv.shares * currentPrice;
+    const price = currentPrices[id];
+    const revenue = inv.shares * price;
     const profit = revenue - inv.shares * inv.buyPrice;
-    let netProfit = profit;
+    let net = profit;
     if (profit > 0) {
         const tax = profit * 0.13;
         const fee = profit * 0.0005;
-        netProfit = profit - tax - fee;
-        showNewsToast(`🧾 Налог 13%: ${tax.toFixed(2)} ₽, комиссия: ${fee.toFixed(2)} ₽`, 'negative');
+        net = profit - tax - fee;
+        showNews(`🧾 Налог 13%: ${tax.toFixed(2)} ₽, комиссия: ${fee.toFixed(2)} ₽`, 'negative');
     }
-    investBalance += inv.shares * inv.buyPrice + netProfit;
-    delete userInvestments[assetId];
+    investBalance += inv.shares * inv.buyPrice + net;
+    delete userInvestments[id];
     updateBalanceDisplay();
     saveGameState();
-    renderAssetsList(true);
-    showNewsToast(`📉 Проданы все ${assets.find(a=>a.id===assetId).displayName}`, 'negative');
+    renderFullList();
+    showNews(`📉 Проданы все акции ${assets.find(a=>a.id===id).displayName}`, 'negative');
 }
-
 function sellAllAssets() {
     if (Object.keys(userInvestments).length === 0) { alert('У вас нет акций'); return; }
-    if (confirm('Продать все акции? Будут удержаны налоги и комиссии.')) {
+    if (confirm('Продать все акции? Налоги и комиссии будут удержаны.')) {
         for (let id of Object.keys(userInvestments)) {
-            sellAllAsset(id);
+            const inv = userInvestments[id];
+            const price = currentPrices[id];
+            const revenue = inv.shares * price;
+            const profit = revenue - inv.shares * inv.buyPrice;
+            let net = profit;
+            if (profit > 0) net = profit - profit*0.13 - profit*0.0005;
+            investBalance += inv.shares * inv.buyPrice + net;
+            delete userInvestments[id];
         }
+        updateBalanceDisplay();
+        saveGameState();
+        renderFullList();
+        showNews(`💰 Все акции проданы`, 'positive');
     }
 }
 
 function payDividends() {
-    let totalDividends = 0;
+    let total = 0;
     for (let [id, inv] of Object.entries(userInvestments)) {
-        const asset = assets.find(a => a.id === id);
+        const asset = assets.find(a=>a.id===id);
         if (asset && asset.dividendYield > 0) {
-            const dividendAmount = inv.shares * currentPrices[id] * (asset.dividendYield / (12 * 24 * 60));
-            if (dividendAmount > 0.01) {
-                investBalance += dividendAmount;
-                totalDividends += dividendAmount;
-            }
+            const div = inv.shares * currentPrices[id] * (asset.dividendYield / (12*24*60));
+            if (div > 0.01) { investBalance += div; total += div; }
         }
     }
-    if (totalDividends > 0) {
-        showNewsToast(`💰 Дивиденды: +${totalDividends.toFixed(2)} ₽`, 'positive');
-        updateBalanceDisplay();
-        saveGameState();
-    }
+    if (total > 0) { showNews(`💰 Дивиденды: +${total.toFixed(2)} ₽`, 'positive'); updateBalanceDisplay(); saveGameState(); }
 }
-
+function calculateDailyReturn() {
+    const start = parseFloat(localStorage.getItem('investorStartCapital')) || 5000;
+    const current = investBalance + Object.values(userInvestments).reduce((s,inv)=> s + inv.shares * currentPrices[inv.id], 0);
+    const ret = ((current - start)/start)*100;
+    const el = document.getElementById('investDailyReturn');
+    if(el) { el.innerHTML = `📈 Дневная доходность: ${ret>=0?'+':''}${ret.toFixed(2)}%`; el.style.color = ret>=0?'#10b981':'#ef4444'; }
+}
 function updateBalanceDisplay() {
-    const balanceDiv = document.getElementById('investBalance');
-    if (balanceDiv) balanceDiv.innerText = `${investBalance.toFixed(0)} ₽`;
+    document.getElementById('investBalance').innerText = `${investBalance.toFixed(0)} ₽`;
     updateTotalProfit();
+    calculateDailyReturn();
 }
-
 function updateTotalProfit() {
-    let totalCost = 0, totalValue = 0;
+    let cost = 0, val = 0;
     for (let [id, inv] of Object.entries(userInvestments)) {
-        const price = currentPrices[id] || 0;
-        totalCost += inv.shares * inv.buyPrice;
-        totalValue += inv.shares * price;
+        cost += inv.shares * inv.buyPrice;
+        val += inv.shares * currentPrices[id];
     }
-    const profit = totalValue - totalCost;
-    const profitElem = document.getElementById('investTotalProfit');
-    if (profitElem) {
-        if (totalCost > 0) {
-            profitElem.innerHTML = `💰 Прибыль по акциям: ${profit >= 0 ? '+' : ''}${profit.toFixed(2)} ₽`;
-            profitElem.style.color = profit >= 0 ? '#10b981' : '#ef4444';
-        } else profitElem.innerHTML = '';
+    const profit = val - cost;
+    const el = document.getElementById('investTotalProfit');
+    if (el) {
+        if (cost) { el.innerHTML = `💰 Прибыль: ${profit>=0?'+':''}${profit.toFixed(2)} ₽`; el.style.color = profit>=0?'#10b981':'#ef4444'; }
+        else el.innerHTML = '';
     }
 }
-
 function saveGameState() {
-    localStorage.setItem('investorGame', JSON.stringify({
-        balance: investBalance,
-        investments: userInvestments,
-        lastSaveTime: Date.now()
+    localStorage.setItem('investorGame_final2', JSON.stringify({
+        balance: investBalance, investments: userInvestments, lastSaveTime: Date.now(), startCapital: localStorage.getItem('investorStartCapital')||5000
     }));
 }
-
 function loadGameState() {
-    const saved = localStorage.getItem('investorGame');
-    if (saved) {
+    const s = localStorage.getItem('investorGame_final2');
+    if (s) {
         try {
-            const data = JSON.parse(saved);
-            investBalance = data.balance;
-            userInvestments = data.investments || {};
-            if (investBalance < 0) investBalance = 5000;
-        } catch(e) { }
-    }
+            const d = JSON.parse(s);
+            investBalance = d.balance || 5000;
+            userInvestments = d.investments || {};
+            localStorage.setItem('investorStartCapital', d.startCapital || 5000);
+        } catch(e) {}
+    } else localStorage.setItem('investorStartCapital', '5000');
 }
-
-function initHistoryAndPrices() {
-    for (let asset of assets) {
-        currentPrices[asset.id] = asset.basePrice;
-        priceHistory[asset.id] = [asset.basePrice];
-    }
-    for (let step = 0; step < 20; step++) {
-        for (let asset of assets) {
-            let oldPrice = currentPrices[asset.id];
-            let r = seededRandom(step * 100 + asset.id.charCodeAt(0));
-            let change = (r - 0.5) * 0.025;
-            let newPrice = oldPrice * (1 + change);
-            newPrice = Math.max(1, newPrice);
-            newPrice = Math.round(newPrice * 100) / 100;
-            currentPrices[asset.id] = newPrice;
-            priceHistory[asset.id].push(newPrice);
+function initHistory() {
+    for (let a of assets) currentPrices[a.id] = a.basePrice;
+    for (let step=0; step<20; step++) {
+        for (let a of assets) {
+            let r = seededRandom(step*100 + a.id.charCodeAt(0));
+            let newP = currentPrices[a.id] * (1 + (r-0.5)*0.025);
+            newP = Math.max(1, Math.round(newP*100)/100);
+            currentPrices[a.id] = newP;
+            updatePriceHistory(a.id, newP);
         }
     }
-    for (let asset of assets) {
-        const prices = priceHistory[asset.id];
-        const candles = [];
-        for (let i = 1; i < prices.length; i++) {
-            candles.push({
-                open: prices[i-1],
-                high: Math.max(prices[i-1], prices[i]) * (1 + Math.random()*0.002),
-                low: Math.min(prices[i-1], prices[i]) * (1 - Math.random()*0.002),
-                close: prices[i],
-                time: Date.now() - (prices.length - i) * 5000
-            });
-        }
-        candlestickData[asset.id] = { candles: candles.slice(-20) };
-    }
+    for (let a of assets) candlestickData[a.id] = { candles: candlestickData[a.id]?.candles.slice(-20) || [] };
 }
-
-async function refreshPricesAndUpdate() {
-    updatePricesWithEffects();
-}
-
-function scheduleNews() {
-    if (newsInterval) clearInterval(newsInterval);
-    newsInterval = setInterval(() => {
-        if (Math.random() < 0.6) {
-            const randomNews = newsEvents[Math.floor(Math.random() * newsEvents.length)];
-            applyNewsEffect(randomNews);
-        }
-    }, 25000);
-}
-
-function scheduleDividends() {
-    if (dividendInterval) clearInterval(dividendInterval);
-    dividendInterval = setInterval(() => payDividends(), 120000);
-}
-
 function initFilters() {
     document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
         btn.addEventListener('click', () => {
-            document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.filter-btn[data-filter]').forEach(b=>b.classList.remove('active'));
             btn.classList.add('active');
             currentFilter = btn.dataset.filter;
             randomOrder = [];
-            renderAssetsList(true);
+            renderFullList();
         });
     });
 }
-
 function showEconomicsModal() {
-    const modal = document.createElement('div');
-    modal.className = 'modal-learn';
-    modal.innerHTML = `
-        <div class="modal-learn-card">
-            <div class="learn-title">📘 Руководство инвестора</div>
-            <div class="learn-text">• Акции покупаются целыми лотами. Используйте кнопки +1/+3/+5 или введите количество в поле и нажмите «Купить».</div>
-            <div class="learn-text">• «Продать всё» продаёт все ваши акции разом.</div>
-            <div class="learn-text">• Налог 13% на прибыль и комиссия брокера 0.05% удерживаются при продаже.</div>
-            <div class="learn-text">• Дивиденды начисляются каждые 2 минуты.</div>
-            <div class="learn-text">• Акции, которыми вы владеете, всегда отображаются вверху списка.</div>
-            <button id="closeLearnModal" class="calc-btn">Понятно</button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    modal.querySelector('#closeLearnModal').addEventListener('click', () => modal.remove());
+    const m = document.createElement('div'); m.className = 'modal-learn';
+    m.innerHTML = `<div class="modal-learn-card"><div class="learn-title">📘 Руководство</div><div class="learn-text">• Акции покупаются кнопками +1/+3/+5.</div><div class="learn-text">• «Продать всё» – продажа всего портфеля.</div><div class="learn-text">• Налог 13%, комиссия 0.05%.</div><div class="learn-text">• Дивиденды каждые 2 минуты.</div><div class="learn-text">• Ваши акции всегда вверху списка.</div><button id="closeLearnModal" class="calc-btn">Понятно</button></div>`;
+    document.body.appendChild(m);
+    document.getElementById('closeLearnModal').addEventListener('click', ()=>m.remove());
 }
-
+function scheduleRefresh() {
+    if (priceRefreshInterval) clearInterval(priceRefreshInterval);
+    priceRefreshInterval = setInterval(() => updatePricesWithEffects(), 5000);
+}
+function scheduleNews() {
+    if (newsInterval) clearInterval(newsInterval);
+    newsInterval = setInterval(()=>{ if(Math.random()<0.6) applyNewsEffect(newsEvents[Math.floor(Math.random()*newsEvents.length)]); }, 25000);
+}
+function scheduleDividends() {
+    if (dividendInterval) clearInterval(dividendInterval);
+    dividendInterval = setInterval(()=>payDividends(), 120000);
+}
+function applyNewsEffect(news) {
+    activeNewsEffects.push({ effect: news.effect, expires: Date.now()+60000 });
+    showNews(news.text, news.type);
+    updatePricesWithEffects();
+}
 function initInvestorGame() {
     loadGameState();
-    initHistoryAndPrices();
+    initHistory();
     updateBalanceDisplay();
-    if (priceRefreshInterval) clearInterval(priceRefreshInterval);
-    priceRefreshInterval = setInterval(() => refreshPricesAndUpdate(), 5000);
+    renderFullList();
+    scheduleRefresh();
     scheduleNews();
     scheduleDividends();
     initFilters();
-    renderAssetsList(true);
-    const learnBtn = document.getElementById('btnLearnEconomics');
-    if (learnBtn) learnBtn.addEventListener('click', showEconomicsModal);
-    const sellAllBtn = document.getElementById('sellAllBtn');
-    if (sellAllBtn) sellAllBtn.addEventListener('click', sellAllAssets);
+    document.getElementById('btnLearnEconomics')?.addEventListener('click', showEconomicsModal);
+    document.getElementById('sellAllBtn')?.addEventListener('click', sellAllAssets);
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('investAssetsList')) initInvestorGame();
-});
-window.addEventListener('beforeunload', () => {
-    if (priceRefreshInterval) clearInterval(priceRefreshInterval);
-    if (newsInterval) clearInterval(newsInterval);
-    if (dividendInterval) clearInterval(dividendInterval);
-    saveGameState();
-});
+document.addEventListener('DOMContentLoaded', ()=>{ if(document.getElementById('investAssetsList')) initInvestorGame(); });
+window.addEventListener('beforeunload', ()=>{ if(priceRefreshInterval) clearInterval(priceRefreshInterval); if(newsInterval) clearInterval(newsInterval); if(dividendInterval) clearInterval(dividendInterval); saveGameState(); });
     
     // ---------- ОБРАТНЫЙ ОТСЧЁТ ----------
     let countdownEvents = [];
