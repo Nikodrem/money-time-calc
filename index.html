@@ -3689,6 +3689,13 @@ window.addEventListener('beforeunload', () => {
         if (priceRefreshInterval) clearInterval(priceRefreshInterval);
         saveGameState();
     });
+
+    // Принудительно открываем подраздел "Вам потребуется" в разделе "Цена времени"
+    setTimeout(() => {
+        const needTab = document.querySelector('#timeSection .local-tab[data-local="need"]');
+        if (needTab) needTab.click();
+    }, 100);
+    
 </script>
 </body>
 </html>
