@@ -895,9 +895,9 @@
     <div class="local-tabs" id="lifeLocalTabs" style="background:#e2e8f0; border-radius:60px; padding:4px; display:flex; justify-content:center; gap:4px;">
     <div class="local-tab active" data-local="lifeFacts" style="border-radius:60px; flex:1; text-align:center;"><span>📜</span><span class="label" style="display:none;"> События</span></div>
     <div class="local-tab" data-local="lifeStats" style="border-radius:60px; flex:1; text-align:center;"><span>🔢</span><span class="label" style="display:none;"> Данные</span></div>
+    <div class="local-tab" data-local="lifeConverter" style="border-radius:60px; flex:1; text-align:center;"><span>📐</span><span class="label" style="display:none;"> Конвертер</span></div>
     <div class="local-tab" data-local="lifeZodiac" style="border-radius:60px; flex:1; text-align:center;"><span>🎮</span><span class="label" style="display:none;"> Инвестор</span></div>
     <div class="local-tab" data-local="lifeCountdown" style="border-radius:60px; flex:1; text-align:center;"><span>⏳</span><span class="label" style="display:none;"> Отсчёт</span></div>
-    <div class="local-tab" data-local="lifeConverter" style="border-radius:60px; flex:1; text-align:center;"><span>📐</span><span class="label" style="display:none;"> Конвертер</span></div>
 </div>
 
     <style>
@@ -1341,6 +1341,18 @@ body.dark .converter-row select {
     color: white;
 }
         
+    /* Убираем огромные отступы над конвертером */
+#lifeConverterContent .life-box {
+    padding-top: 8px !important;
+}
+.converter-box {
+    margin-top: 0 !important;
+}
+/* Компактные отступы у вкладок */
+#lifeLocalTabs {
+    margin-bottom: 12px !important;
+}
+        
     </style>
 
     <!-- Вкладка 1: События -->
@@ -1421,8 +1433,9 @@ body.dark .converter-row select {
         <div class="converter-box">
             <div class="converter-category">
                 <button class="conv-cat-btn active" data-cat="length">📏 Длина</button>
-                <button class="conv-cat-btn" data-cat="mass">⚖️ Масса</button>
                 <button class="conv-cat-btn" data-cat="volume">🧪 Объём</button>
+                <button class="conv-cat-btn" data-cat="area">📐 Площадь</button>
+                <button class="conv-cat-btn" data-cat="mass">⚖️ Масса</button>
                 <button class="conv-cat-btn" data-cat="temperature">🌡️ Температура</button>
             </div>
             <div id="converterPanel">
@@ -1514,7 +1527,7 @@ body.dark .converter-row select {
     const MAX_RECORD = 999;
     
     // ---------- ОБЩИЕ ФУНКЦИИ ----------
-    const APP_VERSION = "8.35 Beta";
+    const APP_VERSION = "8.36 Beta";
     
     let darkMode = localStorage.getItem('darkMode') === 'true';
     function applyTheme() {
@@ -3964,46 +3977,34 @@ window.addEventListener('beforeunload', () => {
         if (needTab) needTab.click();
     }, 100);
 
-    // ---------- КОНВЕРТЕР ЕДИНИЦ ----------
+    // ---------- КОНВЕРТЕР ЕДИНИЦ (только метрические, с площадью и объёмом) ----------
 let currentCategory = 'length';
 
 // Данные для конвертации
 const converters = {
     length: {
-        units: ['mm', 'cm', 'm', 'km', 'in', 'ft', 'yd', 'mi'],
-        labels: ['мм', 'см', 'м', 'км', 'дюйм', 'фут', 'ярд', 'миля'],
-        toBase: {
-            'mm': v => v,
-            'cm': v => v * 10,
-            'm': v => v * 1000,
-            'km': v => v * 1_000_000,
-            'in': v => v * 25.4,
-            'ft': v => v * 304.8,
-            'yd': v => v * 914.4,
-            'mi': v => v * 1_609_344
-        },
-        fromBase: {
-            'mm': v => v,
-            'cm': v => v / 10,
-            'm': v => v / 1000,
-            'km': v => v / 1_000_000,
-            'in': v => v / 25.4,
-            'ft': v => v / 304.8,
-            'yd': v => v / 914.4,
-            'mi': v => v / 1_609_344
-        }
+        units: ['mm', 'cm', 'm', 'km'],
+        labels: ['мм', 'см', 'м', 'км'],
+        toBase: { 'mm': v => v, 'cm': v => v * 10, 'm': v => v * 1000, 'km': v => v * 1_000_000 },
+        fromBase: { 'mm': v => v, 'cm': v => v / 10, 'm': v => v / 1000, 'km': v => v / 1_000_000 }
     },
-    mass: {
-        units: ['mg', 'g', 'kg', 't', 'oz', 'lb'],
-        labels: ['мг', 'г', 'кг', 'т', 'унция', 'фунт'],
-        toBase: { 'mg': v => v, 'g': v => v * 1000, 'kg': v => v * 1_000_000, 't': v => v * 1_000_000_000, 'oz': v => v * 28349.5, 'lb': v => v * 453592 },
-        fromBase: { 'mg': v => v, 'g': v => v / 1000, 'kg': v => v / 1_000_000, 't': v => v / 1_000_000_000, 'oz': v => v / 28349.5, 'lb': v => v / 453592 }
+    area: {
+        units: ['mm2', 'cm2', 'm2', 'km2'],
+        labels: ['мм²', 'см²', 'м²', 'км²'],
+        toBase: { 'mm2': v => v, 'cm2': v => v * 100, 'm2': v => v * 1_000_000, 'km2': v => v * 1e12 },
+        fromBase: { 'mm2': v => v, 'cm2': v => v / 100, 'm2': v => v / 1_000_000, 'km2': v => v / 1e12 }
     },
     volume: {
-        units: ['ml', 'l', 'm3', 'gal', 'qt', 'pt'],
-        labels: ['мл', 'л', 'м³', 'галлон', 'кварта', 'пинта'],
-        toBase: { 'ml': v => v, 'l': v => v * 1000, 'm3': v => v * 1_000_000, 'gal': v => v * 3785.41, 'qt': v => v * 946.353, 'pt': v => v * 473.176 },
-        fromBase: { 'ml': v => v, 'l': v => v / 1000, 'm3': v => v / 1_000_000, 'gal': v => v / 3785.41, 'qt': v => v / 946.353, 'pt': v => v / 473.176 }
+        units: ['mm3', 'cm3', 'm3', 'l'],
+        labels: ['мм³', 'см³', 'м³', 'л'],
+        toBase: { 'mm3': v => v, 'cm3': v => v * 1000, 'm3': v => v * 1e9, 'l': v => v * 1_000_000 },
+        fromBase: { 'mm3': v => v, 'cm3': v => v / 1000, 'm3': v => v / 1e9, 'l': v => v / 1_000_000 }
+    },
+    mass: {
+        units: ['mg', 'g', 'kg', 't'],
+        labels: ['мг', 'г', 'кг', 'т'],
+        toBase: { 'mg': v => v, 'g': v => v * 1000, 'kg': v => v * 1_000_000, 't': v => v * 1_000_000_000 },
+        fromBase: { 'mg': v => v, 'g': v => v / 1000, 'kg': v => v / 1_000_000, 't': v => v / 1_000_000_000 }
     },
     temperature: {
         units: ['c', 'f', 'k'],
@@ -4098,6 +4099,14 @@ function switchConverterCategory(cat) {
     renderConverterPanel();
 }
 
+function initConverterTabs() {
+    document.querySelectorAll('.conv-cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchConverterCategory(btn.dataset.cat);
+        });
+    });
+}
+    
 // Инициализация кнопок категорий (вызывать один раз при загрузке)
 function initConverterTabs() {
     document.querySelectorAll('.conv-cat-btn').forEach(btn => {
