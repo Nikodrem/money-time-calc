@@ -893,11 +893,12 @@
    <!-- РАЗДЕЛ ЖИЗНЬ (с игрой Инвестор) -->
 <div id="lifeSection" class="section" style="min-height:450px;">
     <div class="local-tabs" id="lifeLocalTabs" style="background:#e2e8f0; border-radius:60px; padding:4px; display:flex; justify-content:center; gap:4px;">
-        <div class="local-tab active" data-local="lifeFacts" style="border-radius:60px; flex:1; text-align:center;"><span>📜</span><span class="label" style="display:none;"> События</span></div>
-        <div class="local-tab" data-local="lifeStats" style="border-radius:60px; flex:1; text-align:center;"><span>🔢</span><span class="label" style="display:none;"> Данные</span></div>
-        <div class="local-tab" data-local="lifeZodiac" style="border-radius:60px; flex:1; text-align:center;"><span>🎮</span><span class="label" style="display:none;"> Инвестор</span></div>
-        <div class="local-tab" data-local="lifeCountdown" style="border-radius:60px; flex:1; text-align:center;"><span>⏳</span><span class="label" style="display:none;"> Отсчёт</span></div>
-    </div>
+    <div class="local-tab active" data-local="lifeFacts" style="border-radius:60px; flex:1; text-align:center;"><span>📜</span><span class="label" style="display:none;"> События</span></div>
+    <div class="local-tab" data-local="lifeStats" style="border-radius:60px; flex:1; text-align:center;"><span>🔢</span><span class="label" style="display:none;"> Данные</span></div>
+    <div class="local-tab" data-local="lifeZodiac" style="border-radius:60px; flex:1; text-align:center;"><span>🎮</span><span class="label" style="display:none;"> Инвестор</span></div>
+    <div class="local-tab" data-local="lifeCountdown" style="border-radius:60px; flex:1; text-align:center;"><span>⏳</span><span class="label" style="display:none;"> Отсчёт</span></div>
+    <div class="local-tab" data-local="lifeConverter" style="border-radius:60px; flex:1; text-align:center;"><span>📐</span><span class="label" style="display:none;"> Конвертер</span></div>
+</div>
 
     <style>
         #lifeLocalTabs .local-tab:active { transform: scale(0.96); }
@@ -1283,6 +1284,63 @@ body.dark #lifeLocalTabs .local-tab:active {
     transform: scale(0.96);
 }
         
+    /* ========== СТИЛИ ДЛЯ КОНВЕРТЕРА ЕДИНИЦ ========== */
+.converter-box {
+    background: #f8fafc;
+    border-radius: 28px;
+    padding: 16px;
+    margin-top: 12px;
+}
+body.dark .converter-box {
+    background: #0f172a;
+}
+.converter-category {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+.conv-cat-btn {
+    background: #475569;
+    border: none;
+    border-radius: 40px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    transition: 0.1s;
+}
+.conv-cat-btn.active {
+    background: #3b82f6;
+}
+.conv-cat-btn:active {
+    transform: scale(0.96);
+}
+.converter-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.converter-row select, .converter-row input {
+    flex: 2;
+    min-width: 120px;
+}
+.converter-row span {
+    flex: 0 0 auto;
+    font-size: 20px;
+    font-weight: bold;
+}
+body.dark .converter-row input,
+body.dark .converter-row select {
+    background: #334155;
+    border-color: #475569;
+    color: white;
+}
+        
     </style>
 
     <!-- Вкладка 1: События -->
@@ -1353,6 +1411,25 @@ body.dark #lifeLocalTabs .local-tab:active {
         <button id="addCountdownBtn" class="calc-btn" style="margin-bottom:16px;">Добавить</button>
         <div id="countdownList"></div>
         <div class="note">* Сохраняется на устройстве</div>
+    </div>
+</div>
+
+    <!-- Вкладка 5: Конвертер единиц -->
+<div id="lifeConverterContent" class="local-content">
+    <div class="life-box">
+        <h4>📐 Конвертер физических величин</h4>
+        <div class="converter-box">
+            <div class="converter-category">
+                <button class="conv-cat-btn active" data-cat="length">📏 Длина</button>
+                <button class="conv-cat-btn" data-cat="mass">⚖️ Масса</button>
+                <button class="conv-cat-btn" data-cat="volume">🧪 Объём</button>
+                <button class="conv-cat-btn" data-cat="temperature">🌡️ Температура</button>
+            </div>
+            <div id="converterPanel">
+                <!-- сюда будет динамически подставляться нужный конвертер -->
+            </div>
+        </div>
+        <div class="note">* Перевод величин в реальном времени</div>
     </div>
 </div>
     
@@ -2778,30 +2855,37 @@ body.dark #lifeLocalTabs .local-tab:active {
     let countdownTimer = null;
     
     function initLifeLocalTabs() {
-        const tabs = document.querySelectorAll('#lifeLocalTabs .local-tab');
-        const contents = {
-            lifeFacts: document.getElementById('lifeFactsContent'),
-            lifeStats: document.getElementById('lifeStatsContent'),
-            lifeZodiac: document.getElementById('lifeZodiacContent'),
-            lifeCountdown: document.getElementById('lifeCountdownContent')
-        };
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const target = tab.dataset.local;
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                Object.values(contents).forEach(c => {
-                    if (c) c.classList.remove('active');
-                });
-                if (contents[target]) contents[target].classList.add('active');
-                if (target === 'lifeFacts') updateLifeFacts();
-                if (target === 'lifeStats') startLifeTimer();
-                if (target === 'lifeZodiac') initInvestorGame();
-                if (target === 'lifeCountdown') renderCountdownList();
+    const tabs = document.querySelectorAll('#lifeLocalTabs .local-tab');
+    const contents = {
+        lifeFacts: document.getElementById('lifeFactsContent'),
+        lifeStats: document.getElementById('lifeStatsContent'),
+        lifeZodiac: document.getElementById('lifeZodiacContent'),
+        lifeCountdown: document.getElementById('lifeCountdownContent'),
+        lifeConverter: document.getElementById('lifeConverterContent')   // добавить сюда
+    };
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.local;
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            Object.values(contents).forEach(c => {
+                if (c) c.classList.remove('active');
             });
+            if (contents[target]) contents[target].classList.add('active');
+            
+            // ВОТ СЮДА (внутрь этого обработчика) ВСТАВЬТЕ ЭТИ СТРОКИ:
+            if (target === 'lifeFacts') updateLifeFacts();
+            if (target === 'lifeStats') startLifeTimer();
+            if (target === 'lifeZodiac') initInvestorGame();
+            if (target === 'lifeCountdown') renderCountdownList();
+            if (target === 'lifeConverter') {
+                initConverter();
+                initConverterTabs();
+            }
         });
-        if (tabs.length > 0) tabs[0].click();
-    }
+    });
+    if (tabs.length > 0) tabs[0].click();
+}
     
     function updateSortButtons() {
         const sortNewest = document.getElementById('sortNewest');
@@ -3879,7 +3963,152 @@ window.addEventListener('beforeunload', () => {
         const needTab = document.querySelector('#timeSection .local-tab[data-local="need"]');
         if (needTab) needTab.click();
     }, 100);
-    
+
+    // ---------- КОНВЕРТЕР ЕДИНИЦ ----------
+let currentCategory = 'length';
+
+// Данные для конвертации
+const converters = {
+    length: {
+        units: ['mm', 'cm', 'm', 'km', 'in', 'ft', 'yd', 'mi'],
+        labels: ['мм', 'см', 'м', 'км', 'дюйм', 'фут', 'ярд', 'миля'],
+        toBase: {
+            'mm': v => v,
+            'cm': v => v * 10,
+            'm': v => v * 1000,
+            'km': v => v * 1_000_000,
+            'in': v => v * 25.4,
+            'ft': v => v * 304.8,
+            'yd': v => v * 914.4,
+            'mi': v => v * 1_609_344
+        },
+        fromBase: {
+            'mm': v => v,
+            'cm': v => v / 10,
+            'm': v => v / 1000,
+            'km': v => v / 1_000_000,
+            'in': v => v / 25.4,
+            'ft': v => v / 304.8,
+            'yd': v => v / 914.4,
+            'mi': v => v / 1_609_344
+        }
+    },
+    mass: {
+        units: ['mg', 'g', 'kg', 't', 'oz', 'lb'],
+        labels: ['мг', 'г', 'кг', 'т', 'унция', 'фунт'],
+        toBase: { 'mg': v => v, 'g': v => v * 1000, 'kg': v => v * 1_000_000, 't': v => v * 1_000_000_000, 'oz': v => v * 28349.5, 'lb': v => v * 453592 },
+        fromBase: { 'mg': v => v, 'g': v => v / 1000, 'kg': v => v / 1_000_000, 't': v => v / 1_000_000_000, 'oz': v => v / 28349.5, 'lb': v => v / 453592 }
+    },
+    volume: {
+        units: ['ml', 'l', 'm3', 'gal', 'qt', 'pt'],
+        labels: ['мл', 'л', 'м³', 'галлон', 'кварта', 'пинта'],
+        toBase: { 'ml': v => v, 'l': v => v * 1000, 'm3': v => v * 1_000_000, 'gal': v => v * 3785.41, 'qt': v => v * 946.353, 'pt': v => v * 473.176 },
+        fromBase: { 'ml': v => v, 'l': v => v / 1000, 'm3': v => v / 1_000_000, 'gal': v => v / 3785.41, 'qt': v => v / 946.353, 'pt': v => v / 473.176 }
+    },
+    temperature: {
+        units: ['c', 'f', 'k'],
+        labels: ['°C', '°F', 'K'],
+        convert: (val, from, to) => {
+            let c;
+            if (from === 'c') c = val;
+            else if (from === 'f') c = (val - 32) * 5/9;
+            else if (from === 'k') c = val - 273.15;
+            if (to === 'c') return c;
+            if (to === 'f') return c * 9/5 + 32;
+            if (to === 'k') return c + 273.15;
+        }
+    }
+};
+
+function initConverter() {
+    renderConverterPanel();
+    attachConverterEvents();
+}
+
+function renderConverterPanel() {
+    const panel = document.getElementById('converterPanel');
+    if (!panel) return;
+    const cat = converters[currentCategory];
+    if (!cat) return;
+    if (currentCategory === 'temperature') {
+        panel.innerHTML = `
+            <div class="converter-row">
+                <select id="convFromUnit">
+                    ${cat.units.map((u, i) => `<option value="${u}">${cat.labels[i]}</option>`).join('')}
+                </select>
+                <input type="number" id="convFromVal" placeholder="Значение" value="0">
+            </div>
+            <div class="converter-row">
+                <select id="convToUnit">
+                    ${cat.units.map((u, i) => `<option value="${u}">${cat.labels[i]}</option>`).join('')}
+                </select>
+                <input type="text" id="convToVal" placeholder="Результат" readonly>
+            </div>
+        `;
+    } else {
+        panel.innerHTML = `
+            <div class="converter-row">
+                <select id="convFromUnit">
+                    ${cat.units.map((u, i) => `<option value="${u}">${cat.labels[i]}</option>`).join('')}
+                </select>
+                <input type="number" id="convFromVal" placeholder="Значение" value="0">
+            </div>
+            <div class="converter-row">
+                <select id="convToUnit">
+                    ${cat.units.map((u, i) => `<option value="${u}">${cat.labels[i]}</option>`).join('')}
+                </select>
+                <input type="text" id="convToVal" placeholder="Результат" readonly>
+            </div>
+        `;
+    }
+    attachConverterEvents();
+}
+
+function attachConverterEvents() {
+    const fromVal = document.getElementById('convFromVal');
+    const fromUnit = document.getElementById('convFromUnit');
+    const toUnit = document.getElementById('convToUnit');
+    if (!fromVal || !fromUnit || !toUnit) return;
+    const update = () => {
+        let val = parseFloat(fromVal.value);
+        if (isNaN(val)) val = 0;
+        let result;
+        const cat = converters[currentCategory];
+        if (currentCategory === 'temperature') {
+            result = cat.convert(val, fromUnit.value, toUnit.value);
+        } else {
+            const base = cat.toBase[fromUnit.value](val);
+            result = cat.fromBase[toUnit.value](base);
+        }
+        const toField = document.getElementById('convToVal');
+        if (toField) toField.value = result.toFixed(6);
+    };
+    fromVal.addEventListener('input', update);
+    fromUnit.addEventListener('change', update);
+    toUnit.addEventListener('change', update);
+    update();
+}
+
+function switchConverterCategory(cat) {
+    currentCategory = cat;
+    document.querySelectorAll('.conv-cat-btn').forEach(btn => {
+        if (btn.dataset.cat === cat) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+    renderConverterPanel();
+}
+
+// Инициализация кнопок категорий (вызывать один раз при загрузке)
+function initConverterTabs() {
+    document.querySelectorAll('.conv-cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchConverterCategory(btn.dataset.cat);
+        });
+    });
+}
+
+// Обновляем initLifeLocalTabs, чтобы при вызове lifeConverter запускался наш конвертер
+// (Если вы уже добавили условие, то просто вызывайте initConverter и initConverterTabs)
 </script>
 </body>
 </html>
