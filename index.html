@@ -1052,7 +1052,6 @@ body.dark .chart-mode-btn.active {
 /* Убираем лишние отступы */
 .life-box {
     padding: 12px !important;
-    margin-bottom: 12px !important;
 }
 .invest-header {
     margin-bottom: 12px;
@@ -1061,9 +1060,55 @@ body.dark .chart-mode-btn.active {
     margin-bottom: 12px;
     flex-wrap: wrap;
 }
+.category-bar {
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.category-btn {
+    background: #64748b;
+    border: none;
+    border-radius: 30px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: white;
+    cursor: pointer;
+    transition: 0.1s;
+}
+.category-btn.active {
+    background: #3b82f6;
+}
+.category-btn:active {
+    transform: scale(0.96);
+}
+body.dark .category-btn {
+    background: #475569;
+}
+body.dark .category-btn.active {
+    background: #3b82f6;
+}
 /* Прокрутка списка акций без мёртвых зон */
 #investAssetsList canvas {
-    pointer-events: none;
+    pointer-events: none;  /* чтобы скролл работал через канвас */
+}
+/* Оформление новостной панели */
+#newsPanel {
+    background: #f1f5f9;
+    border-radius: 20px;
+}
+body.dark #newsPanel {
+    background: #1e293b;
+}
+#latestNewsList {
+    scrollbar-width: thin;
+}
+.news-item {
+    padding: 2px 4px;
+    border-bottom: 1px solid #cbd5e1;
+    white-space: nowrap;
+    overflow-x: auto;
+}
+body.dark .news-item {
+    border-bottom-color: #475569;
 }
 /* Вкладки Жизни – фикс высоты */
 #lifeLocalTabs .local-tab {
@@ -1075,13 +1120,74 @@ body.dark .chart-mode-btn.active {
     flex-wrap: nowrap;
     overflow-x: auto;
 }
+/* Тёмная тема для обрамлений */
+body.dark .life-box {
+    background: #1e293b;
+    border-color: #334155;
+}
+body.dark #newsPanel {
+    background: #0f172a;
+}
+body.dark .filter-btn, body.dark .category-btn {
+    background: #334155;
+    color: #cbd5e1;
+}
+body.dark .filter-btn.active, body.dark .category-btn.active {
+    background: #3b82f6;
+    color: white;
+}
+        
+    /* Расширенное обрамление и тёмная тема для вкладок */
+#lifeLocalTabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    background: #e2e8f0; /* светлая тема */
+}
+body.dark #lifeLocalTabs {
+    background: #1e293b;
+}
+#lifeLocalTabs .local-tab {
+    white-space: nowrap;
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 40px;
+    transition: all 0.1s;
+    background: transparent;
+    color: #1f2937;
+}
+body.dark #lifeLocalTabs .local-tab {
+    color: #cbd5e1;
+}
+#lifeLocalTabs .local-tab.active {
+    background: #3b82f6;
+    color: white;
+}
+body.dark #lifeLocalTabs .local-tab.active {
+    background: #3b82f6;
+    color: white;
+}
+
 /* Расширение контейнеров */
+.life-box {
+    padding: 12px !important;
+    margin-bottom: 12px !important;
+}
+.invest-asset-card {
+    padding: 12px !important;
+}
 .candlestick-canvas {
-    pointer-events: none;
+    pointer-events: none;  /* чтобы скролл работал через график */
     width: 100%;
     height: 120px;
 }
-/* Блок "Ваш капитал" в светлой теме */
+/* Блок "Ваш капитал" в тёмной теме */
+body.dark #investBalance + div,
+body.dark .life-box div[style*="background: #eef2f6"] {
+    background: #0f172a !important;
+    color: #e2e8f0 !important;
+}
+        
+    /* Светлая тема: обрамление "Ваш капитал" */
 .life-box .capital-box {
     background: #eef2f6;
     border-radius: 60px;
@@ -1091,34 +1197,80 @@ body.dark .chart-mode-btn.active {
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     border: 1px solid #cbd5e1;
 }
-
-/* ========== ТЁМНАЯ ТЕМА (все правки) ========== */
-body.dark .life-box {
-    background: #1e293b;
-    border-color: #334155;
-}
-body.dark .filter-btn {
-    background: #334155;
-    color: #cbd5e1;
-}
-body.dark .filter-btn.active {
-    background: #3b82f6;
-    color: white;
-}
-/* Блок "Ваш капитал" в тёмной теме */
 body.dark .life-box .capital-box {
     background: #0f172a;
     border-color: #334155;
     box-shadow: none;
 }
-/* Вкладки "События, Данные, Инвестор, Отсчёт" – тёмная тема */
+
+/* Тёмная тема: убираем белое обрамление вокруг "Доступные акции" */
+body.dark #investAssetsContainer {
+    background: transparent !important;
+}
+body.dark .invest-asset-card {
+    background: #1e293b !important;
+    border: none;
+}
+/* Тёмная тема для подтабов "Жизнь" – уже есть, но усилим */
+body.dark #lifeLocalTabs {
+    background: #1e293b !important;
+}
+body.dark #lifeLocalTabs .local-tab {
+    background: transparent !important;
+    color: #cbd5e1;
+}
+body.dark #lifeLocalTabs .local-tab.active {
+    background: #3b82f6 !important;
+    color: white;
+}
+        
+    /* Тёмная тема для контейнера вкладок "Жизнь" */
+body.dark #lifeLocalTabs {
+    background: #1e293b !important;
+}
+body.dark #lifeLocalTabs .local-tab {
+    background: transparent !important;
+    color: #cbd5e1;
+}
+body.dark #lifeLocalTabs .local-tab.active {
+    background: #3b82f6 !important;
+    color: white;
+}
+        
+    /* Тёмная тема для блока "Доступные акции" */
+body.dark #investAssetsContainer {
+    background: transparent !important;
+}
+body.dark .invest-asset-card {
+    background: #1e293b !important;
+    border: none;
+}
+body.dark #investAssetsContainer > div {
+    background: #0f172a;
+}
+        
+    /* Тёмная тема: блок "Доступные акции" – тёмный фон */
+body.dark #investAssetsContainer {
+    background: #0f172a !important;
+    border-radius: 28px;
+    padding: 12px;
+}
+body.dark .invest-asset-card {
+    background: #1e293b !important;
+    border: 1px solid #334155;
+}
+body.dark #investAssetsList {
+    background: transparent;
+}
+
+/* Тёмная тема: вкладки "События, Данные, Инвестор, Отсчёт" – красивый оттенок */
 body.dark #lifeLocalTabs {
     background: #0f172a !important;
     border: 1px solid #334155;
     border-radius: 60px;
 }
 body.dark #lifeLocalTabs .local-tab {
-    background: transparent !important;
+    background: transparent;
     color: #94a3b8;
     transition: all 0.2s;
 }
@@ -1129,44 +1281,6 @@ body.dark #lifeLocalTabs .local-tab.active {
 }
 body.dark #lifeLocalTabs .local-tab:active {
     transform: scale(0.96);
-}
-/* Контейнер "Доступные акции" – полная тёмная заливка */
-body.dark #investAssetsContainer {
-    background: #0f172a !important;
-    border-radius: 28px;
-    padding: 12px;
-}
-body.dark #investAssetsList {
-    background: #0f172a !important;
-}
-body.dark .invest-asset-card {
-    background: #1e293b !important;
-    border: 1px solid #334155;
-}
-/* Блок прибыли внутри карточки акции (тёмная тема) */
-body.dark .profit-display {
-    background: #1e293b !important;
-    color: #cbd5e1 !important;
-    border-radius: 20px;
-    padding: 4px 8px;
-}
-body.dark .profit-display.profit-positive {
-    color: #10b981 !important;
-}
-body.dark .profit-display.profit-negative {
-    color: #ef4444 !important;
-}
-/* Текст "Цены обновляются каждые 5 сек." и примечание */
-body.dark #investAssetsContainer + div,
-body.dark .pseudo-science-note {
-    background: transparent !important;
-    color: #94a3b8;
-}
-/* Дополнительно: поле ввода количества в тёмной теме */
-body.dark .invest-input {
-    background: #334155;
-    border-color: #475569;
-    color: white;
 }
         
     </style>
@@ -3036,12 +3150,8 @@ let activeNewsEffects = [];
 function showNewsToast(text, type) {
     const newsDiv = document.getElementById('newsTicker');
     if (newsDiv) {
-        // Показываем новость в специальном блоке (не всплывающее окно)
         newsDiv.innerHTML = `<span style="color: ${type === 'positive' ? '#10b981' : '#ef4444'};">${type === 'positive' ? '📈' : '📉'} ${text}</span>`;
-        // Через 5 секунд очищаем, если не появилась новая
-        setTimeout(() => {
-            if (newsDiv.innerHTML.includes(text)) newsDiv.innerHTML = '';
-        }, 5000);
+        setTimeout(() => { if (newsDiv.innerHTML.includes(text)) newsDiv.innerHTML = ''; }, 5000);
     }
 }
 
