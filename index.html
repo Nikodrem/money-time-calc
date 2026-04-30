@@ -1224,6 +1224,31 @@ body.dark #lifeLocalTabs .local-tab.active {
     color: white;
 }
         
+    /* Тёмная тема для контейнера вкладок "Жизнь" */
+body.dark #lifeLocalTabs {
+    background: #1e293b !important;
+}
+body.dark #lifeLocalTabs .local-tab {
+    background: transparent !important;
+    color: #cbd5e1;
+}
+body.dark #lifeLocalTabs .local-tab.active {
+    background: #3b82f6 !important;
+    color: white;
+}
+        
+    /* Тёмная тема для блока "Доступные акции" */
+body.dark #investAssetsContainer {
+    background: transparent !important;
+}
+body.dark .invest-asset-card {
+    background: #1e293b !important;
+    border: none;
+}
+body.dark #investAssetsContainer > div {
+    background: #0f172a;
+}
+        
     </style>
 
     <!-- Вкладка 1: События -->
@@ -3210,6 +3235,14 @@ function getSortedAssets() {
 }
 
 function renderFullList() {
+    const sellAllBtn = document.getElementById('sellAllAssetsBtn');
+if (sellAllBtn) {
+    if (Object.keys(userInvestments).length === 0) {
+        sellAllBtn.style.display = 'none';
+    } else {
+        sellAllBtn.style.display = 'block';
+    }
+}
     const container = document.getElementById('investAssetsList');
     if (!container) return;
     const sorted = getSortedAssets();
@@ -3402,10 +3435,33 @@ function sellAllAsset(assetId) {
 }
 
 function sellAllAssets() {
-    if (Object.keys(userInvestments).length === 0) { alert('У вас нет акций'); return; }
-    if (confirm('Продать ВСЕ акции? Налоги и комиссии будут удержаны.')) {
-        for (let id of Object.keys(userInvestments)) sellAllAsset(id);
+    if (Object.keys(userInvestments).length === 0) {
+        // Не показываем окно, просто выход
+        return;
     }
+    // Создаём красивое модальное окно вместо confirm
+    const modal = document.createElement('div');
+    modal.className = 'modal-learn';
+    modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:10000; backdrop-filter:blur(5px);';
+    modal.innerHTML = `
+        <div class="modal-learn-card" style="background:#1e293b; border-radius:48px; padding:24px; width:320px; max-width:90%; color:white; text-align:center;">
+            <div style="font-size:20px; margin-bottom:16px;">⚠️ Подтверждение</div>
+            <div style="margin-bottom:24px;">Продать ВСЕ акции?<br>Будет удержан налог 13% и комиссия 0.05%.</div>
+            <div style="display:flex; gap:12px;">
+                <button id="confirmSell" class="calc-btn" style="background:#ef4444;">Продать</button>
+                <button id="cancelSell" class="calc-btn" style="background:#475569;">Отмена</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.querySelector('#confirmSell').addEventListener('click', () => {
+        for (let assetId of Object.keys(userInvestments)) {
+            sellAllAsset(assetId);
+        }
+        modal.remove();
+        renderFullList();  // обновить список после продажи
+    });
+    modal.querySelector('#cancelSell').addEventListener('click', () => modal.remove());
 }
 
 function payDividends() {
@@ -3460,20 +3516,40 @@ function loadGameState() {
 }
 
 function initHistoryAndPrices() {
-    for (let a of assets) currentPrices[a.id] = a.basePrice;
+    // Заполняем 20 шагов случайного блуждания от базовой цены
+    for (let asset of assets) {
+        currentPrices[asset.id] = asset.basePrice;
+        priceHistory[asset.id] = [asset.basePrice];
+    }
     for (let step = 0; step < 20; step++) {
-        for (let a of assets) {
-            let r = seededRandom(step*100 + a.id.charCodeAt(0));
-            let newP = currentPrices[a.id] * (1 + (r-0.5)*0.025);
-            newP = Math.max(1, Math.round(newP*100)/100);
-            currentPrices[a.id] = newP;
-            updatePriceHistory(a.id, newP);
+        for (let asset of assets) {
+            let oldPrice = currentPrices[asset.id];
+            let r = seededRandom(step * 100 + asset.id.charCodeAt(0));
+            let change = (r - 0.5) * 0.025;
+            let newPrice = oldPrice * (1 + change);
+            newPrice = Math.max(1, newPrice);
+            newPrice = Math.round(newPrice * 100) / 100;
+            currentPrices[asset.id] = newPrice;
+            priceHistory[asset.id].push(newPrice);
         }
     }
-    for (let a of assets) {
-        if (!candlestickData[a.id]) candlestickData[a.id] = { candles: [] };
-        candlestickData[a.id].candles = candlestickData[a.id].candles.slice(-20);
+    // Строим свечи из полученной истории
+    for (let asset of assets) {
+        const prices = priceHistory[asset.id];
+        const candles = [];
+        for (let i = 1; i < prices.length; i++) {
+            candles.push({
+                open: prices[i-1],
+                high: Math.max(prices[i-1], prices[i]) * (1 + Math.random()*0.002),
+                low: Math.min(prices[i-1], prices[i]) * (1 - Math.random()*0.002),
+                close: prices[i],
+                time: Date.now() - (prices.length - i) * 5000
+            });
+        }
+        candlestickData[asset.id] = { candles: candles.slice(-20) };
     }
+    // Принудительно отрисовываем графики
+    for (let asset of assets) drawChart(`chart_${asset.id}`, asset.id);
 }
 
 function refreshPricesAndUpdate() {
