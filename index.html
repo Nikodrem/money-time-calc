@@ -1249,6 +1249,40 @@ body.dark #investAssetsContainer > div {
     background: #0f172a;
 }
         
+    /* Тёмная тема: блок "Доступные акции" – тёмный фон */
+body.dark #investAssetsContainer {
+    background: #0f172a !important;
+    border-radius: 28px;
+    padding: 12px;
+}
+body.dark .invest-asset-card {
+    background: #1e293b !important;
+    border: 1px solid #334155;
+}
+body.dark #investAssetsList {
+    background: transparent;
+}
+
+/* Тёмная тема: вкладки "События, Данные, Инвестор, Отсчёт" – красивый оттенок */
+body.dark #lifeLocalTabs {
+    background: #0f172a !important;
+    border: 1px solid #334155;
+    border-radius: 60px;
+}
+body.dark #lifeLocalTabs .local-tab {
+    background: transparent;
+    color: #94a3b8;
+    transition: all 0.2s;
+}
+body.dark #lifeLocalTabs .local-tab.active {
+    background: #1e293b !important;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+body.dark #lifeLocalTabs .local-tab:active {
+    transform: scale(0.96);
+}
+        
     </style>
 
     <!-- Вкладка 1: События -->
@@ -1300,7 +1334,7 @@ body.dark #investAssetsContainer > div {
             <div style="background: #f8fafc; border-radius: 28px; padding: 12px; margin-top: 8px;">
                 <div style="font-weight: 600; margin-bottom: 12px; text-align: center;">📈 Доступные акции</div>
                 <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
-    <button id="sellAllAssetsBtn" class="calc-btn" style="background:#ef4444; width: auto; padding: 6px 16px; height: 38px; font-size: 14px;">📉 Продать все акции</button>
+    <button id="sellAllAssetsBtn" class="calc-btn" style="background:#ef4444; width: auto; padding: 6px 16px; height: 38px; font-size: 14px; display: none;">📉 Продать все акции</button>
 </div>
                 <div id="investAssetsContainer">
                     <div id="investAssetsList" style="max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;"></div>
@@ -3029,16 +3063,87 @@ const assets = [
     { id: 'yandex', displayName: 'Yandex', ticker: 'YNDX', emoji: '🔎', sector: 'Интернет', basePrice: 310, dividendYield: 0.0 }
 ];
 
-const newsEvents = [ /* список новостей без изменений, можно оставить как есть */ 
-    { text: "🏦 ЦБ повысил ставку", effect: { sector: "all", change: -0.03 }, type: "negative" },
-    { text: "🏭 Нефть подорожала", effect: { sector: "Энергия", change: 0.04 }, type: "positive" },
-    { text: "📉 Геополитика давит", effect: { sector: "all", change: -0.02 }, type: "negative" },
-    { text: "🍎 Apple выпустила iPhone", effect: { ids: ["aapl"], change: 0.05 }, type: "positive" },
-    { text: "⚡ Tesla отзывает авто", effect: { ids: ["tsla"], change: -0.04 }, type: "negative" },
-    { text: "📊 Сбер отчитался", effect: { ids: ["sber"], change: 0.03 }, type: "positive" },
-    { text: "🔥 Газпром приостановил поставки", effect: { ids: ["gazp"], change: -0.06 }, type: "negative" },
-    { text: "🛢️ ОПЕК+ сократила добычу", effect: { sector: "Энергия", change: 0.03 }, type: "positive" },
-    { text: "🎮 NVIDIA анонсирует", effect: { ids: ["nvda"], change: 0.06 }, type: "positive" }
+const newsEvents = [
+    // Общие новости
+    { text: "🏦 Центробанк повысил ключевую ставку", effect: { sector: "all", change: -0.03 }, type: "negative" },
+    { text: "📉 Падение фондового рынка из-за геополитики", effect: { sector: "all", change: -0.02 }, type: "negative" },
+    { text: "🚀 SpaceX успешно запустила ракету", effect: { sector: "Технологии", change: 0.02 }, type: "positive" },
+    { text: "🏭 Нефть Brent подорожала на 5%", effect: { sector: "Энергия", change: 0.04 }, type: "positive" },
+    // Apple (aapl)
+    { text: "🍎 Apple выпустила новый iPhone", effect: { ids: ["aapl"], change: 0.05 }, type: "positive" },
+    { text: "🍏 Слабые продажи Apple в Китае", effect: { ids: ["aapl"], change: -0.03 }, type: "negative" },
+    { text: "💻 Apple анонсирует ARM-чип", effect: { ids: ["aapl"], change: 0.04 }, type: "positive" },
+    { text: "📉 Apple сокращает производство Vision Pro", effect: { ids: ["aapl"], change: -0.02 }, type: "negative" },
+    // Microsoft (msft)
+    { text: "☕ Microsoft представляет новый ИИ-чип", effect: { ids: ["msft"], change: 0.04 }, type: "positive" },
+    { text: "🔒 Сбой в облаке Azure", effect: { ids: ["msft"], change: -0.02 }, type: "negative" },
+    { text: "💼 Microsoft покупает Activision", effect: { ids: ["msft"], change: 0.03 }, type: "positive" },
+    { text: "⚖️ Антимонопольный иск против Microsoft", effect: { ids: ["msft"], change: -0.015 }, type: "negative" },
+    // Google (googl)
+    { text: "🔍 Google увольняет 12 тысяч сотрудников", effect: { ids: ["googl"], change: -0.02 }, type: "negative" },
+    { text: "🤖 Google выпускает Gemini AI", effect: { ids: ["googl"], change: 0.045 }, type: "positive" },
+    { text: "📺 Рекламный доход Google вырос", effect: { ids: ["googl"], change: 0.02 }, type: "positive" },
+    { text: "⚖️ Еврокомиссия штрафует Google", effect: { ids: ["googl"], change: -0.025 }, type: "negative" },
+    // Amazon (amzn)
+    { text: "📦 Amazon расширяет доставку дронами", effect: { ids: ["amzn"], change: 0.03 }, type: "positive" },
+    { text: "🛒 Рост онлайн-продаж Amazon", effect: { ids: ["amzn"], change: 0.02 }, type: "positive" },
+    { text: "👷 Забастовки на складах Amazon", effect: { ids: ["amzn"], change: -0.02 }, type: "negative" },
+    { text: "📉 Amazon снижает прогноз", effect: { ids: ["amzn"], change: -0.025 }, type: "negative" },
+    // Tesla (tsla)
+    { text: "⚡ Tesla отзывает партию автомобилей", effect: { ids: ["tsla"], change: -0.04 }, type: "negative" },
+    { text: "🚗 Tesla Cybertruck выходит на рынок", effect: { ids: ["tsla"], change: 0.06 }, type: "positive" },
+    { text: "🔋 Tesla строит новый гигазавод", effect: { ids: ["tsla"], change: 0.035 }, type: "positive" },
+    { text: "📉 Снижение спроса на электромобили", effect: { ids: ["tsla"], change: -0.03 }, type: "negative" },
+    // Gold (gld)
+    { text: "🥇 Золото подешевело на фоне крепкого доллара", effect: { ids: ["gld"], change: -0.02 }, type: "negative" },
+    { text: "🪙 Рост цен на золото из-за инфляции", effect: { ids: ["gld"], change: 0.025 }, type: "positive" },
+    { text: "🏦 Китай увеличивает закупки золота", effect: { ids: ["gld"], change: 0.015 }, type: "positive" },
+    { text: "💰 Падение цен на драгметаллы", effect: { ids: ["gld"], change: -0.018 }, type: "negative" },
+    // USO (uso)
+    { text: "🛢️ ОПЕК+ сократила добычу нефти", effect: { sector: "Энергия", change: 0.03 }, type: "positive" },
+    { text: "⛽ Запасы нефти в США выросли", effect: { sector: "Энергия", change: -0.02 }, type: "negative" },
+    { text: "🔥 Рост цен на энергоносители", effect: { sector: "Энергия", change: 0.025 }, type: "positive" },
+    { text: "📉 Падение спроса на нефть", effect: { sector: "Энергия", change: -0.03 }, type: "negative" },
+    // NVIDIA (nvda)
+    { text: "🎮 NVIDIA анонсирует новые видеокарты", effect: { ids: ["nvda"], change: 0.06 }, type: "positive" },
+    { text: "🚀 NVIDIA обгоняет Intel по капитализации", effect: { ids: ["nvda"], change: 0.05 }, type: "positive" },
+    { text: "⚙️ NVIDIA задерживает поставки чипов", effect: { ids: ["nvda"], change: -0.03 }, type: "negative" },
+    { text: "📉 Падение продаж игровых видеокарт", effect: { ids: ["nvda"], change: -0.02 }, type: "negative" },
+    // Meta (meta)
+    { text: "🌐 Мета открывает метавселенную в РФ", effect: { ids: ["meta"], change: 0.04 }, type: "positive" },
+    { text: "📉 Рекламный доход Meta падает", effect: { ids: ["meta"], change: -0.03 }, type: "negative" },
+    { text: "🤖 Meta запускает ИИ-модель Llama 3", effect: { ids: ["meta"], change: 0.035 }, type: "positive" },
+    { text: "⚖️ Регуляторы штрафуют Meta", effect: { ids: ["meta"], change: -0.02 }, type: "negative" },
+    // Netflix (nflx)
+    { text: "📺 Netflix потерял подписчиков", effect: { ids: ["nflx"], change: -0.05 }, type: "negative" },
+    { text: "🎬 Netflix запускает рекламный тариф", effect: { ids: ["nflx"], change: 0.02 }, type: "positive" },
+    { text: "📈 Рост числа подписчиков Netflix", effect: { ids: ["nflx"], change: 0.03 }, type: "positive" },
+    { text: "💸 Netflix сокращает бюджет на контент", effect: { ids: ["nflx"], change: -0.015 }, type: "negative" },
+    // Intel (intc)
+    { text: "💻 Intel задерживает поставки чипов", effect: { ids: ["intc"], change: -0.03 }, type: "negative" },
+    { text: "🏭 Intel открывает новый завод в Огайо", effect: { ids: ["intc"], change: 0.02 }, type: "positive" },
+    { text: "⚙️ Intel теряет долю рынка серверов", effect: { ids: ["intc"], change: -0.02 }, type: "negative" },
+    { text: "💡 Intel анонсирует новую архитектуру", effect: { ids: ["intc"], change: 0.025 }, type: "positive" },
+    // AMD (amd)
+    { text: "⚙️ AMD перегоняет Intel по производительности", effect: { ids: ["amd"], change: 0.035 }, type: "positive" },
+    { text: "🎮 AMD выпускает новые видеокарты", effect: { ids: ["amd"], change: 0.04 }, type: "positive" },
+    { text: "📉 Снижение спроса на игровые консоли", effect: { ids: ["amd"], change: -0.02 }, type: "negative" },
+    { text: "🔥 Перегрев чипов AMD", effect: { ids: ["amd"], change: -0.025 }, type: "negative" },
+    // Sberbank (sber)
+    { text: "📊 Сбербанк отчитался о рекордной прибыли", effect: { ids: ["sber"], change: 0.03 }, type: "positive" },
+    { text: "🤖 Сбер внедряет ИИ в экосистему", effect: { ids: ["sber"], change: 0.02 }, type: "positive" },
+    { text: "⚖️ Сбер оштрафован за рекламу", effect: { ids: ["sber"], change: -0.01 }, type: "negative" },
+    { text: "📉 Падение доходов Сбера от комиссий", effect: { ids: ["sber"], change: -0.015 }, type: "negative" },
+    // Gazprom (gazp)
+    { text: "🔥 Газпром приостанавливает поставки", effect: { ids: ["gazp"], change: -0.06 }, type: "negative" },
+    { text: "🌍 Газпром запускает СПГ-проект", effect: { ids: ["gazp"], change: 0.025 }, type: "positive" },
+    { text: "💶 Рост цен на газ в Европе", effect: { ids: ["gazp"], change: 0.04 }, type: "positive" },
+    { text: "🚫 Новые санкции против Газпрома", effect: { ids: ["gazp"], change: -0.03 }, type: "negative" },
+    // Yandex (yandex)
+    { text: "🔎 Яндекс создаёт конкурента ChatGPT", effect: { ids: ["yandex"], change: 0.045 }, type: "positive" },
+    { text: "🛒 Яндекс.Маркет растёт", effect: { ids: ["yandex"], change: 0.02 }, type: "positive" },
+    { text: "⚖️ Яндекс оштрафован за утечку данных", effect: { ids: ["yandex"], change: -0.015 }, type: "negative" },
+    { text: "📉 Падение выручки от такси", effect: { ids: ["yandex"], change: -0.02 }, type: "negative" }
 ];
 let activeNewsEffects = [];
 
@@ -3308,6 +3413,11 @@ if (sellAllBtn) {
         `;
     }).join('');
     attachHandlers();
+
+    // Отрисовываем графики после того, как HTML вставлен
+    for (let asset of assets) {
+        drawChart(asset.id);
+    }
 }
 
 function attachHandlers() {
@@ -3548,10 +3658,8 @@ function initHistoryAndPrices() {
         }
         candlestickData[asset.id] = { candles: candles.slice(-20) };
     }
-    // Принудительно отрисовываем графики
-    for (let asset of assets) drawChart(`chart_${asset.id}`, asset.id);
+    // НЕ вызываем drawChart здесь – канвас ещё не создан
 }
-
 function refreshPricesAndUpdate() {
     updatePricesWithEffects();
 }
