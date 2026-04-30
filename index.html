@@ -1341,16 +1341,16 @@ body.dark .converter-row select {
     color: white;
 }
         
-    /* Убираем огромные отступы над конвертером */
+    /* Конвертер – убираем огромные отступы */
 #lifeConverterContent .life-box {
     padding-top: 8px !important;
+    padding-bottom: 8px !important;
 }
 .converter-box {
     margin-top: 0 !important;
 }
-/* Компактные отступы у вкладок */
-#lifeLocalTabs {
-    margin-bottom: 12px !important;
+#converterPanel .converter-row {
+    margin-bottom: 12px;
 }
         
     </style>
@@ -1433,14 +1433,12 @@ body.dark .converter-row select {
         <div class="converter-box">
             <div class="converter-category">
                 <button class="conv-cat-btn active" data-cat="length">📏 Длина</button>
-                <button class="conv-cat-btn" data-cat="volume">🧪 Объём</button>
                 <button class="conv-cat-btn" data-cat="area">📐 Площадь</button>
+                <button class="conv-cat-btn" data-cat="volume">🧪 Объём</button>
                 <button class="conv-cat-btn" data-cat="mass">⚖️ Масса</button>
                 <button class="conv-cat-btn" data-cat="temperature">🌡️ Температура</button>
             </div>
-            <div id="converterPanel">
-                <!-- сюда будет динамически подставляться нужный конвертер -->
-            </div>
+            <div id="converterPanel"></div>
         </div>
         <div class="note">* Перевод величин в реальном времени</div>
     </div>
@@ -3977,10 +3975,36 @@ window.addEventListener('beforeunload', () => {
         if (needTab) needTab.click();
     }, 100);
 
-    // ---------- КОНВЕРТЕР ЕДИНИЦ (только метрические, с площадью и объёмом) ----------
-let currentCategory = 'length';
+    // ---------- КОНВЕРТЕР ЕДИНИЦ (с сохранением состояния) ----------
+let currentCategory = localStorage.getItem('convCategory') || 'length';
+let savedFromUnit = {};
+let savedToUnit = {};
+let savedFromVal = {};
 
-// Данные для конвертации
+// Загружаем сохранённые значения из localStorage
+function loadConverterState() {
+    const saved = localStorage.getItem('converterState');
+    if (saved) {
+        try {
+            const state = JSON.parse(saved);
+            currentCategory = state.category || 'length';
+            savedFromUnit = state.fromUnit || {};
+            savedToUnit = state.toUnit || {};
+            savedFromVal = state.fromVal || {};
+        } catch(e) {}
+    }
+}
+
+function saveConverterState() {
+    const state = {
+        category: currentCategory,
+        fromUnit: savedFromUnit,
+        toUnit: savedToUnit,
+        fromVal: savedFromVal
+    };
+    localStorage.setItem('converterState', JSON.stringify(state));
+}
+
 const converters = {
     length: {
         units: ['mm', 'cm', 'm', 'km'],
@@ -4007,21 +4031,20 @@ const converters = {
         fromBase: { 'mg': v => v, 'g': v => v / 1000, 'kg': v => v / 1_000_000, 't': v => v / 1_000_000_000 }
     },
     temperature: {
-        units: ['c', 'f', 'k'],
-        labels: ['°C', '°F', 'K'],
+        units: ['c', 'k'],
+        labels: ['°C', 'K'],
         convert: (val, from, to) => {
             let c;
             if (from === 'c') c = val;
-            else if (from === 'f') c = (val - 32) * 5/9;
             else if (from === 'k') c = val - 273.15;
             if (to === 'c') return c;
-            if (to === 'f') return c * 9/5 + 32;
             if (to === 'k') return c + 273.15;
         }
     }
 };
 
 function initConverter() {
+    loadConverterState();
     renderConverterPanel();
     attachConverterEvents();
 }
@@ -4031,17 +4054,22 @@ function renderConverterPanel() {
     if (!panel) return;
     const cat = converters[currentCategory];
     if (!cat) return;
+    
+    const fromUnitVal = savedFromUnit[currentCategory] || cat.units[0];
+    const toUnitVal = savedToUnit[currentCategory] || cat.units[1] || cat.units[0];
+    const fromVal = savedFromVal[currentCategory] !== undefined ? savedFromVal[currentCategory] : 0;
+    
     if (currentCategory === 'temperature') {
         panel.innerHTML = `
             <div class="converter-row">
                 <select id="convFromUnit">
-                    ${cat.units.map((u, i) => `<option value="${u}">${cat.labels[i]}</option>`).join('')}
+                    ${cat.units.map((u, i) => `<option value="${u}" ${u === fromUnitVal ? 'selected' : ''}>${cat.labels[i]}</option>`).join('')}
                 </select>
-                <input type="number" id="convFromVal" placeholder="Значение" value="0">
+                <input type="number" id="convFromVal" placeholder="Значение" value="${fromVal}">
             </div>
             <div class="converter-row">
                 <select id="convToUnit">
-                    ${cat.units.map((u, i) => `<option value="${u}">${cat.labels[i]}</option>`).join('')}
+                    ${cat.units.map((u, i) => `<option value="${u}" ${u === toUnitVal ? 'selected' : ''}>${cat.labels[i]}</option>`).join('')}
                 </select>
                 <input type="text" id="convToVal" placeholder="Результат" readonly>
             </div>
@@ -4050,13 +4078,13 @@ function renderConverterPanel() {
         panel.innerHTML = `
             <div class="converter-row">
                 <select id="convFromUnit">
-                    ${cat.units.map((u, i) => `<option value="${u}">${cat.labels[i]}</option>`).join('')}
+                    ${cat.units.map((u, i) => `<option value="${u}" ${u === fromUnitVal ? 'selected' : ''}>${cat.labels[i]}</option>`).join('')}
                 </select>
-                <input type="number" id="convFromVal" placeholder="Значение" value="0">
+                <input type="number" id="convFromVal" placeholder="Значение" value="${fromVal}">
             </div>
             <div class="converter-row">
                 <select id="convToUnit">
-                    ${cat.units.map((u, i) => `<option value="${u}">${cat.labels[i]}</option>`).join('')}
+                    ${cat.units.map((u, i) => `<option value="${u}" ${u === toUnitVal ? 'selected' : ''}>${cat.labels[i]}</option>`).join('')}
                 </select>
                 <input type="text" id="convToVal" placeholder="Результат" readonly>
             </div>
@@ -4070,9 +4098,16 @@ function attachConverterEvents() {
     const fromUnit = document.getElementById('convFromUnit');
     const toUnit = document.getElementById('convToUnit');
     if (!fromVal || !fromUnit || !toUnit) return;
+    
     const update = () => {
         let val = parseFloat(fromVal.value);
         if (isNaN(val)) val = 0;
+        // Сохраняем текущее состояние
+        savedFromVal[currentCategory] = val;
+        savedFromUnit[currentCategory] = fromUnit.value;
+        savedToUnit[currentCategory] = toUnit.value;
+        saveConverterState();
+        
         let result;
         const cat = converters[currentCategory];
         if (currentCategory === 'temperature') {
@@ -4084,6 +4119,10 @@ function attachConverterEvents() {
         const toField = document.getElementById('convToVal');
         if (toField) toField.value = result.toFixed(6);
     };
+    
+    fromVal.removeEventListener('input', update);
+    fromUnit.removeEventListener('change', update);
+    toUnit.removeEventListener('change', update);
     fromVal.addEventListener('input', update);
     fromUnit.addEventListener('change', update);
     toUnit.addEventListener('change', update);
@@ -4092,6 +4131,7 @@ function attachConverterEvents() {
 
 function switchConverterCategory(cat) {
     currentCategory = cat;
+    saveConverterState();
     document.querySelectorAll('.conv-cat-btn').forEach(btn => {
         if (btn.dataset.cat === cat) btn.classList.add('active');
         else btn.classList.remove('active');
