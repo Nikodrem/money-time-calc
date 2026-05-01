@@ -932,7 +932,7 @@
         body.dark .life-box h4 { color: #f1f5f9; }
         .pseudo-science-note { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 20px; }
         
-        /* ========== НОВЫЕ СТИЛИ ДЛЯ ИНВЕСТОРА ========== */
+        /* ========== НОВЫЕ СТИЛИ ДЛЯ ИНВЕСТОРА (чистая версия) ========== */
 .invest-header {
     display: flex;
     align-items: center;
@@ -954,7 +954,6 @@
     font-weight: 600;
     color: white;
     cursor: pointer;
-    transition: transform 0.1s;
 }
 .btn-guide:active { transform: scale(0.96); }
 body.dark .btn-guide { background: #7c3aed; }
@@ -973,12 +972,12 @@ body.dark .btn-guide { background: #7c3aed; }
     color: white;
     font-weight: 500;
     cursor: pointer;
-    transition: transform 0.1s;
 }
 .filter-btn:active { transform: scale(0.96); }
 .filter-btn.active {
     background: #3b82f6;
 }
+
 #investAssetsList {
     max-height: 480px;
     overflow-y: auto;
@@ -1008,41 +1007,12 @@ body.dark .invest-asset-card { background: #334155; }
     border: 1px solid #cbd5e1;
     padding: 10px;
 }
-.news-toast {
-    position: fixed;
-    top: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1e293b;
-    color: white;
-    border-radius: 60px;
-    padding: 12px 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    z-index: 3000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    animation: slideDown 0.3s ease;
-    max-width: 90%;
-    text-align: center;
-    font-size: 14px;
-}
-.news-toast.positive { border-left: 6px solid #10b981; }
-.news-toast.negative { border-left: 6px solid #ef4444; }
-@keyframes slideDown {
-    from { opacity: 0; transform: translateX(-50%) translateY(-100px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-        
-    /* Доп. стили для кнопки переключения режима графика */
+
+/* Кнопка переключения графика */
 #toggleChartMode {
     transition: transform 0.1s;
 }
-#toggleChartMode:active {
-    transform: scale(0.96);
-}
-        
-    /* Стили для переключения режима графика (две кнопки в группе) */
+#toggleChartMode:active { transform: scale(0.96); }
 .chart-mode-btn {
     background: transparent;
     border: none;
@@ -1052,159 +1022,22 @@ body.dark .invest-asset-card { background: #334155; }
     font-weight: 600;
     color: #cbd5e1;
     cursor: pointer;
-    transition: all 0.1s;
 }
 .chart-mode-btn.active {
     background: #3b82f6;
     color: white;
 }
-.chart-mode-btn:active {
-    transform: scale(0.96);
-}
-body.dark .chart-mode-btn.active {
-    background: #3b82f6;
-}
-        
-    /* ========== ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ ИНВЕСТОРА ========== */
-/* Убираем лишние отступы */
-.life-box {
-    padding: 12px !important;
-}
-.invest-header {
-    margin-bottom: 12px;
-}
-.filter-bar {
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-}
-.category-bar {
-    gap: 6px;
-    margin-bottom: 12px;
-}
-.category-btn {
-    background: #64748b;
-    border: none;
-    border-radius: 30px;
-    padding: 4px 12px;
-    font-size: 12px;
-    color: white;
-    cursor: pointer;
-    transition: 0.1s;
-}
-.category-btn.active {
-    background: #3b82f6;
-}
-.category-btn:active {
-    transform: scale(0.96);
-}
-body.dark .category-btn {
-    background: #475569;
-}
-body.dark .category-btn.active {
-    background: #3b82f6;
-}
-/* Прокрутка списка акций без мёртвых зон */
-#investAssetsList canvas {
-    pointer-events: none;  /* чтобы скролл работал через канвас */
-}
-/* Оформление новостной панели */
-#newsPanel {
-    background: #f1f5f9;
-    border-radius: 20px;
-}
-body.dark #newsPanel {
-    background: #1e293b;
-}
-#latestNewsList {
-    scrollbar-width: thin;
-}
-.news-item {
-    padding: 2px 4px;
-    border-bottom: 1px solid #cbd5e1;
-    white-space: nowrap;
-    overflow-x: auto;
-}
-body.dark .news-item {
-    border-bottom-color: #475569;
-}
-/* Вкладки Жизни – фикс высоты */
-#lifeLocalTabs .local-tab {
-    white-space: nowrap;
-    font-size: 14px;
-    padding: 6px 12px;
-}
-#lifeLocalTabs {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-}
-/* Тёмная тема для обрамлений */
-body.dark .life-box {
-    background: #1e293b;
-    border-color: #334155;
-}
-body.dark #newsPanel {
-    background: #0f172a;
-}
-body.dark .filter-btn, body.dark .category-btn {
-    background: #334155;
-    color: #cbd5e1;
-}
-body.dark .filter-btn.active, body.dark .category-btn.active {
-    background: #3b82f6;
-    color: white;
-}
-        
-    /* Расширенное обрамление и тёмная тема для вкладок */
-#lifeLocalTabs {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    background: #e2e8f0; /* светлая тема */
-}
-body.dark #lifeLocalTabs {
-    background: #1e293b;
-}
-#lifeLocalTabs .local-tab {
-    white-space: nowrap;
-    font-size: 14px;
-    padding: 10px 16px;
-    border-radius: 40px;
-    transition: all 0.1s;
-    background: transparent;
-    color: #1f2937;
-}
-body.dark #lifeLocalTabs .local-tab {
-    color: #cbd5e1;
-}
-#lifeLocalTabs .local-tab.active {
-    background: #3b82f6;
-    color: white;
-}
-body.dark #lifeLocalTabs .local-tab.active {
-    background: #3b82f6;
-    color: white;
-}
+.chart-mode-btn:active { transform: scale(0.96); }
+body.dark .chart-mode-btn.active { background: #3b82f6; }
 
-/* Расширение контейнеров */
-.life-box {
-    padding: 12px !important;
-    margin-bottom: 12px !important;
-}
-.invest-asset-card {
-    padding: 12px !important;
-}
-.candlestick-canvas {
-    pointer-events: none;  /* чтобы скролл работал через график */
-    width: 100%;
-    height: 120px;
-}
-/* Блок "Ваш капитал" в тёмной теме */
-body.dark #investBalance + div,
-body.dark .life-box div[style*="background: #eef2f6"] {
-    background: #0f172a !important;
-    color: #e2e8f0 !important;
-}
-        
-    /* Светлая тема: обрамление "Ваш капитал" */
+/* Дополнительные общие стили */
+#investAssetsList canvas { pointer-events: none; }
+.candlestick-canvas { pointer-events: none; width: 100%; height: 120px; }
+.life-box { padding: 12px !important; margin-bottom: 12px !important; }
+.invest-asset-card { padding: 12px !important; }
+.filter-bar { margin-bottom: 12px; flex-wrap: wrap; }
+
+/* Блок "Ваш капитал" */
 .life-box .capital-box {
     background: #eef2f6;
     border-radius: 60px;
@@ -1219,93 +1052,53 @@ body.dark .life-box .capital-box {
     border-color: #334155;
     box-shadow: none;
 }
-
-/* Тёмная тема: убираем белое обрамление вокруг "Доступные акции" */
-body.dark #investAssetsContainer {
-    background: transparent !important;
-}
-body.dark .invest-asset-card {
-    background: #1e293b !important;
-    border: none;
-}
-/* Тёмная тема для подтабов "Жизнь" – уже есть, но усилим */
-body.dark #lifeLocalTabs {
-    background: #1e293b !important;
-}
-body.dark #lifeLocalTabs .local-tab {
-    background: transparent !important;
-    color: #cbd5e1;
-}
-body.dark #lifeLocalTabs .local-tab.active {
-    background: #3b82f6 !important;
-    color: white;
-}
-        
-    /* Тёмная тема для контейнера вкладок "Жизнь" */
-body.dark #lifeLocalTabs {
-    background: #1e293b !important;
-}
-body.dark #lifeLocalTabs .local-tab {
-    background: transparent !important;
-    color: #cbd5e1;
-}
-body.dark #lifeLocalTabs .local-tab.active {
-    background: #3b82f6 !important;
-    color: white;
-}
-        
-    /* Тёмная тема для блока "Доступные акции" */
-body.dark #investAssetsContainer {
-    background: transparent !important;
-}
-body.dark .invest-asset-card {
-    background: #1e293b !important;
-    border: none;
-}
-body.dark #investAssetsContainer > div {
-    background: #0f172a;
-}
-        
-    /* Тёмная тема: блок "Доступные акции" – тёмный фон */
-body.dark #investAssetsContainer {
+body.dark #investBalance + div,
+body.dark .life-box div[style*="background: #eef2f6"] {
     background: #0f172a !important;
-    border-radius: 28px;
-    padding: 12px;
-}
-body.dark .invest-asset-card {
-    background: #1e293b !important;
-    border: 1px solid #334155;
-}
-body.dark #investAssetsList {
-    background: transparent;
+    color: #e2e8f0 !important;
 }
 
-/* Тёмная тема: вкладки "События, Данные, Инвестор, Отсчёт" – красивый оттенок */
-body.dark #lifeLocalTabs {
-    background: #0f172a !important;
-    border: 1px solid #334155;
+/* Вкладки раздела "Жизнь" – в одну строку с прокруткой, но без больших отступов */
+#lifeLocalTabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    background: #e2e8f0;
     border-radius: 60px;
+    padding: 8px;
+    margin-bottom: 12px;
+    gap: 6px;
+}
+body.dark #lifeLocalTabs {
+    background: #1e293b;
+}
+#lifeLocalTabs .local-tab {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    border-radius: 40px;
+    background: transparent;
+    color: #1f2937;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    flex: 0 0 auto;
 }
 body.dark #lifeLocalTabs .local-tab {
-    background: transparent;
-    color: #94a3b8;
-    transition: all 0.2s;
+    color: #cbd5e1;
 }
-body.dark #lifeLocalTabs .local-tab.active {
-    background: #1e293b !important;
+#lifeLocalTabs .local-tab.active {
+    background: #3b82f6;
     color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
-body.dark #lifeLocalTabs .local-tab:active {
-    transform: scale(0.96);
-}
-        
-    /* ========== СТИЛИ ДЛЯ КОНВЕРТЕРА ЕДИНИЦ ========== */
+
+/* Стили для конвертера – максимальное сжатие отступов */
 .converter-box {
     background: #f8fafc;
     border-radius: 28px;
     padding: 16px;
-    margin-top: 12px;
 }
 body.dark .converter-box {
     background: #0f172a;
@@ -1314,41 +1107,31 @@ body.dark .converter-box {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     justify-content: center;
 }
 .conv-cat-btn {
     background: #475569;
     border: none;
     border-radius: 40px;
-    padding: 8px 16px;
-    font-size: 14px;
+    padding: 6px 14px;
+    font-size: 13px;
     font-weight: 500;
     color: white;
     cursor: pointer;
-    transition: 0.1s;
 }
-.conv-cat-btn.active {
-    background: #3b82f6;
-}
-.conv-cat-btn:active {
-    transform: scale(0.96);
-}
+.conv-cat-btn.active { background: #3b82f6; }
+.conv-cat-btn:active { transform: scale(0.96); }
 .converter-row {
     display: flex;
     gap: 12px;
     align-items: center;
     flex-wrap: wrap;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 .converter-row select, .converter-row input {
     flex: 2;
     min-width: 120px;
-}
-.converter-row span {
-    flex: 0 0 auto;
-    font-size: 20px;
-    font-weight: bold;
 }
 body.dark .converter-row input,
 body.dark .converter-row select {
@@ -1356,28 +1139,14 @@ body.dark .converter-row select {
     border-color: #475569;
     color: white;
 }
-        
-    /* Конвертер – убираем огромные отступы */
-#lifeConverterContent .life-box {
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
-}
-.converter-box {
-    margin-top: 0 !important;
-}
-#converterPanel .converter-row {
-    margin-bottom: 12px;
-}
-        
-    /* ========== ПОЛНОСТЬЮ УБИРАЕМ ОГРОМНЫЙ ОТСТУП В КОНВЕРТЕРЕ ========== */
+
+/* СПЕЦИАЛЬНЫЕ ПРАВИЛА ДЛЯ КОНВЕРТЕРА – УБИРАЕМ ВСЕ ОТСТУПЫ */
 #lifeConverterContent {
     margin-top: 0;
 }
 #lifeConverterContent .life-box {
-    margin-top: 0 !important;
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
-    margin-bottom: 0 !important;
+    padding: 12px !important;
+    margin: 0 !important;
 }
 #lifeConverterContent .life-box h4 {
     margin-top: 0 !important;
@@ -1388,6 +1157,10 @@ body.dark .converter-row select {
 }
 #lifeConverterContent .converter-category {
     margin-bottom: 12px !important;
+}
+#lifeConverterContent .converter-row:last-child {
+    margin-bottom: 0;
+}
 }
         
     </style>
