@@ -1136,7 +1136,6 @@ body.dark .news-item {
 #lifeLocalTabs {
     flex-wrap: nowrap;
     overflow-x: auto;
-    margin-bottom: 0 !important; /* Убираем нижний отступ у вкладок */
 }
 /* Тёмная тема для обрамлений */
 body.dark .life-box {
@@ -1160,7 +1159,6 @@ body.dark .filter-btn.active, body.dark .category-btn.active {
     flex-wrap: nowrap;
     overflow-x: auto;
     background: #e2e8f0; /* светлая тема */
-    margin-bottom: 0 !important; /* дополнительно */
 }
 body.dark #lifeLocalTabs {
     background: #1e293b;
@@ -1307,7 +1305,7 @@ body.dark #lifeLocalTabs .local-tab:active {
     background: #f8fafc;
     border-radius: 28px;
     padding: 16px;
-    margin-top: 0 !important; /* убираем верхний отступ */
+    margin-top: 12px;
 }
 body.dark .converter-box {
     background: #0f172a;
@@ -1316,7 +1314,7 @@ body.dark .converter-box {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
     justify-content: center;
 }
 .conv-cat-btn {
@@ -1341,7 +1339,7 @@ body.dark .converter-box {
     gap: 12px;
     align-items: center;
     flex-wrap: wrap;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 .converter-row select, .converter-row input {
     flex: 2;
@@ -1359,7 +1357,19 @@ body.dark .converter-row select {
     color: white;
 }
         
-    /* Убираем все возможные отступы у конвертера */
+    /* Конвертер – убираем огромные отступы */
+#lifeConverterContent .life-box {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+}
+.converter-box {
+    margin-top: 0 !important;
+}
+#converterPanel .converter-row {
+    margin-bottom: 12px;
+}
+        
+    /* ========== ПОЛНОСТЬЮ УБИРАЕМ ОГРОМНЫЙ ОТСТУП В КОНВЕРТЕРЕ ========== */
 #lifeConverterContent {
     margin-top: 0;
 }
